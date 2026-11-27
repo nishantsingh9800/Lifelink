@@ -54,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
       params.set("lat", String(gpsCoords.latitude));
       params.set("lon", String(gpsCoords.longitude));
     }
+    params.set("_ts", String(Date.now()));
 
     try {
       const res = await LifeLinkAPI.request(`/api/blood-banks/nearby-live?${params.toString()}`);
