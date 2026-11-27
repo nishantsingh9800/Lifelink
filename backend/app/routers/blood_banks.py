@@ -166,11 +166,20 @@ def search_nearby_live_facilities(
     seen_names: set[str] = set()
     sources_used: List[str] = []
 
-    # 1. Platform DB blood banks (with any facility-reported stock updates)
-    db_banks = repo.search_blood_banks(city=city, query_text=q)
+    # 1. Platform DB blood banks (non-fatal if DB temporarily unreachable)
+    db_notice: Optional[str] = None
+    try:
+        db_banks = repo.search_blood_banks(city=city, query_text=q)
+    except Exception:
+        db_banks = []
+        db_notice = "Platform directory temporarily unavailable; showing live public map results."
+
     for row in db_banks:
         b = _enrich_bank(row, lat, lon)
-        stock_rows = repo.list_blood_bank_stock_updates(b.id)
+        try:
+            stock_rows = repo.list_blood_bank_stock_updates(b.id)
+        except Exception:
+            stock_rows = []
         name_q = quote_plus(f"{b.facility_name} {b.city} blood bank contact".strip())
         seen_names.add(b.facility_name.lower().strip())
         facilities.append(
@@ -202,7 +211,12 @@ def search_nearby_live_facilities(
         sources_used.append("LifeLink Verified Directory")
 
     # 2. Platform-verified partner hospitals
-    verified_hospitals = repo.list_verified_hospitals(city=city)
+    try:
+        verified_hospitals = repo.list_verified_hospitals(city=city)
+    except Exception:
+        verified_hospitals = []
+        if not db_notice:
+            db_notice = "Partner hospital directory temporarily unavailable; showing live public map results."
     for hosp in verified_hospitals:
         h_name = str(hosp["hospital_name"]).strip()
         if q and q.strip().lower() not in f"{h_name} {hosp['address']} {hosp['city']}".lower():
@@ -279,7 +293,7 @@ def search_nearby_live_facilities(
             else "Real-time unit counts per blood group require official e-RaktKosh API credentials at deployment; use the phone numbers below or e-RaktKosh portal to confirm live blood availability."
         ),
         maps_nearby_search_url=maps_nearby_url,
-        provider_notice=ext.get("provider_notice"),
+        provider_notice=ext.get("provider_notice") or db_notice,
     )
 
 
