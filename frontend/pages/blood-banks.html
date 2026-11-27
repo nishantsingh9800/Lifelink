@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blood-Bank Directory — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div class="section-header">
+        <h1>Blood-Bank Directory &amp; Official Fallback</h1>
+        <p>Search verified blood-bank directory entries or check official national registries.</p>
+      </div>
+
+      <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--primary-red);">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <div>
+            <strong>Nearby Blood Banks, Hospitals &amp; e-RaktKosh Live Stock</strong>
+            <div class="form-hint" id="bb-live-stock-note">
+              LifeLink lists verified directory entries and real nearby hospitals/blood banks with contact numbers and Google Maps links.
+              Real-time blood-unit inventory per group comes from official e-RaktKosh or calling the facility directly (never fabricated).
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a id="bb-gmaps-nearby-link" href="https://www.google.com/maps/search/?api=1&query=blood+bank+near+me" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-sm">
+              Open Google Maps Nearby
+            </a>
+            <a href="https://www.eraktkosh.in/BLDAHIMS/bloodbank/transactions/bbpublicindex.html" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+              Check Live Stock on e-RaktKosh
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 24px;">
+        <form id="bb-search-form" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+          <div class="form-group" style="margin-bottom: 0; min-width: 170px; flex: 1;">
+            <label for="bb-city">City</label>
+            <input type="text" id="bb-city" class="form-control" placeholder="e.g., Mathura" />
+          </div>
+          <div class="form-group" style="margin-bottom: 0; min-width: 160px; flex: 1;">
+            <label for="bb-type-filter">Facility Type</label>
+            <select id="bb-type-filter" class="form-control">
+              <option value="all">Blood Banks &amp; Hospitals</option>
+              <option value="blood_bank">Blood Banks Only</option>
+              <option value="hospital">Hospitals Only</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0; min-width: 210px; flex: 2;">
+            <label for="bb-query">Facility Name or Keyword (Optional)</label>
+            <input type="text" id="bb-query" class="form-control" placeholder="e.g., District Hospital, Rotary Blood Bank" />
+          </div>
+          <button type="button" id="bb-gps-btn" class="btn btn-outline">Use My GPS Location</button>
+          <button type="submit" id="bb-search-btn" class="btn btn-primary">Search Nearby</button>
+        </form>
+      </div>
+
+      <div id="bb-search-alert" class="alert hidden"></div>
+      <div id="bb-source-meta" class="form-hint" style="margin-bottom: 12px;"></div>
+      <div id="bb-results-container"></div>
+
+      <div class="card" style="margin-top: 28px;">
+        <h2 style="margin-top: 0;">Verified Partner Hospitals</h2>
+        <p class="form-hint" style="margin-top: 0;">Platform-verified hospitals indicate reviewed licensing documentation only; live stock is still confirmed directly at the blood bank.</p>
+        <div id="bb-verified-hospitals" style="display: grid; gap: 10px;">Loading verified partner hospitals...</div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/blood-banks.js"></script>
+</body>
+</html>

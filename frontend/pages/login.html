@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div class="card form-card">
+        <span class="badge badge-red">Account Sign In</span>
+        <h1 style="margin: 10px 0 6px;">Sign in to LifeLink</h1>
+        <p style="color: var(--text-secondary); margin-top: 0;">Access your requester, donor, or administrator workspace.</p>
+
+        <div id="auth-mode-banner" class="alert alert-info hidden"></div>
+        <div id="login-alert" class="alert hidden"></div>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-identifier">Email Address or Phone Number</label>
+            <input type="text" id="login-identifier" class="form-control" required placeholder="you@example.com or +919876543210" />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-control" required placeholder="Enter your password" />
+          </div>
+          <button type="submit" id="login-submit-btn" class="btn btn-primary" style="width: 100%;">Sign In</button>
+        </form>
+
+        <p style="margin: 18px 0 0; text-align: center; font-size: 0.9rem; color: var(--text-secondary);">
+          Need an account? <a href="/pages/register.html">Register here</a>
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/login.js"></script>
+</body>
+</html>

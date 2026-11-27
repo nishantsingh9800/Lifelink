@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Console — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div id="admin-alert" class="alert hidden"></div>
+      <div id="admin-loading" class="card">Verifying administrator authorization...</div>
+
+      <div id="admin-content" class="hidden">
+        <div class="section-header">
+          <span class="badge badge-red">Administrator Console</span>
+          <h1 style="margin: 10px 0 6px;">Platform Overview, Moderation &amp; Analytics</h1>
+          <p id="admin-disclaimer">Real database-backed counts only.</p>
+        </div>
+
+        <div class="grid-4" id="admin-stats-grid" style="margin-bottom: 24px;"></div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <h2 style="margin-top: 0;">Platform Analytics</h2>
+          <div id="admin-analytics-grid" class="grid-4"></div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;">
+            <h2 style="margin: 0;">User Management</h2>
+            <form id="admin-user-filter-form" style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <select id="admin-role-filter" class="form-control" style="width: auto;">
+                <option value="">All roles</option>
+                <option value="requester">Requester</option>
+                <option value="donor">Donor</option>
+                <option value="hospital">Hospital</option>
+                <option value="admin">Admin</option>
+              </select>
+              <input type="text" id="admin-user-search" class="form-control" style="width: 220px;" placeholder="Search name, email, city" />
+              <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+            </form>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Name</th><th>Email</th><th>Role</th><th>Aadhaar</th><th>City</th><th>Status</th><th>Action</th></tr>
+              </thead>
+              <tbody id="admin-users-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 24px;">
+          <div class="card">
+            <h2 style="margin-top: 0;">Donor Document Reviews</h2>
+            <div id="admin-drive-banner" class="alert alert-info hidden"></div>
+            <div id="admin-docs-list" style="display: grid; gap: 10px;"></div>
+          </div>
+
+          <div class="card">
+            <h2 style="margin-top: 0;">Reports &amp; Safety Moderation</h2>
+            <div id="admin-reports-list" style="display: grid; gap: 10px;"></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 24px;">
+          <div class="card">
+            <h2 style="margin-top: 0;">Blood Requests Moderation</h2>
+            <div id="admin-requests-list" style="display: grid; gap: 10px;"></div>
+          </div>
+
+          <div class="card">
+            <h2 style="margin-top: 0;">Add Verified Blood-Bank Entry</h2>
+            <form id="admin-bb-form" style="display: grid; gap: 10px;">
+              <input type="text" id="abb-name" class="form-control" required placeholder="Facility Name" />
+              <input type="text" id="abb-address" class="form-control" required placeholder="Address" />
+              <div class="grid-2">
+                <input type="text" id="abb-city" class="form-control" required placeholder="City" />
+                <input type="text" id="abb-phone" class="form-control" required placeholder="Phone" />
+              </div>
+              <input type="text" id="abb-source" class="form-control" required placeholder="Source (e.g., Official District Directory)" />
+              <button type="submit" class="btn btn-primary btn-sm">Add Blood Bank</button>
+            </form>
+            <div id="admin-bb-list" style="display: grid; gap: 8px; margin-top: 14px;"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <h2 style="margin-top: 0;">Hospital Verification &amp; Audit Queue</h2>
+          <p class="form-hint" style="margin-top: 0;">Review submitted hospital registrations, inspect licensing files, and maintain audit decisions.</p>
+          <div id="admin-hospitals-list" style="display: grid; gap: 10px;"></div>
+        </div>
+
+        <div class="card" style="margin-bottom: 24px;">
+          <h2 style="margin-top: 0;">External Integrations Readiness</h2>
+          <p class="form-hint" style="margin-top: 0;">Configuration-gated status for external APIs. Unconfigured gateways remain disabled honestly.</p>
+          <div id="admin-integrations-list" style="display: grid; gap: 8px;"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/admin.js"></script>
+</body>
+</html>

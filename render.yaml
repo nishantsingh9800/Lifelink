@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: lifelink-blood-donor
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.1
+      - key: APP_ENV
+        value: production
+      - key: DEV_AUTH_MODE
+        value: "true"
+      - key: APP_JWT_SECRET
+        generateValue: true
+      - key: REQUIRE_AADHAAR_FOR_ACTIONS
+        value: "false"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: GEOCODING_API_KEY
+        sync: false
+      - key: ERAKTKOSH_API_URL
+        sync: false
+      - key: ERAKTKOSH_API_KEY
+        sync: false

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Private Messages — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div class="section-header">
+        <h1>Private In-App Communication</h1>
+        <p>Conversations open only after donor acceptance. Phone numbers remain hidden unless both participants consent.</p>
+      </div>
+
+      <div id="chat-alert" class="alert hidden"></div>
+
+      <div class="grid-2" style="grid-template-columns: 0.9fr 1.6fr; align-items: start;">
+        <div class="card">
+          <h2 style="margin-top: 0; font-size: 1.1rem;">Authorized Conversations</h2>
+          <div id="conv-list" style="display: grid; gap: 10px;"></div>
+        </div>
+
+        <div class="card" id="chat-pane">
+          <div id="chat-empty-selection" class="empty-state" style="border: none; padding: 24px 12px;">
+            <h3>Select a conversation</h3>
+            <p>Choose an authorized conversation on the left to exchange messages or manage contact sharing.</p>
+          </div>
+
+          <div id="chat-active-view" class="hidden">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 14px;">
+              <div>
+                <strong id="chat-counterpart-name"></strong>
+                <span id="chat-conv-status" class="badge badge-neutral" style="margin-left: 6px;"></span>
+                <div class="form-hint" id="chat-request-context"></div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" id="chat-report-btn" class="btn btn-outline btn-sm">Report</button>
+                <button type="button" id="chat-block-btn" class="btn btn-outline btn-sm">Block User</button>
+              </div>
+            </div>
+
+            <div id="contact-sharing-box" class="alert alert-info" style="margin-bottom: 14px;">
+              <strong>Optional Phone Sharing:</strong>
+              <span id="cs-status-text">Checking consent...</span>
+              <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" id="cs-consent-btn" class="btn btn-primary btn-sm">Agree to Share My Phone</button>
+                <button type="button" id="cs-withdraw-btn" class="btn btn-outline btn-sm">Withdraw Consent</button>
+              </div>
+            </div>
+
+            <div id="chat-messages-box" style="max-height: 360px; overflow-y: auto; display: grid; gap: 10px; padding: 10px; background: var(--bg); border-radius: var(--radius-md); margin-bottom: 14px;"></div>
+
+            <form id="chat-send-form" style="display: flex; gap: 10px;">
+              <input type="text" id="chat-message-input" class="form-control" required maxlength="2000" placeholder="Type a private coordination message..." />
+              <button type="submit" id="chat-send-btn" class="btn btn-primary">Send</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/messages.js"></script>
+</body>
+</html>

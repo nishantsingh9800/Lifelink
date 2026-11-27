@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Details — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div id="req-detail-alert" class="alert hidden"></div>
+      <div id="req-detail-loading" class="card">Loading request details...</div>
+
+      <div id="req-detail-body" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 20px;">
+          <div>
+            <span class="badge badge-red" id="rd-blood-badge">Blood Group</span>
+            <span class="badge badge-neutral" id="rd-status-badge" style="margin-left: 6px;">Status</span>
+            <h1 style="margin: 10px 0 4px;" id="rd-title">Request</h1>
+            <p style="margin: 0; color: var(--text-secondary);" id="rd-subtitle"></p>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;" id="rd-owner-actions">
+            <button type="button" id="rd-match-btn" class="btn btn-primary btn-sm">Find &amp; Notify Donors</button>
+            <button type="button" id="rd-escalate-btn" class="btn btn-secondary btn-sm">Expand / Escalate Stage</button>
+            <a href="#" id="rd-bb-fallback-link" class="btn btn-outline btn-sm">Blood Banks</a>
+            <select id="rd-fulfill-donor-select" class="form-control" style="width: auto; padding: 6px 10px; font-size: 0.85rem;">
+              <option value="">Fulfilled via Blood Bank / Other</option>
+            </select>
+            <button type="button" id="rd-fulfilled-btn" class="btn btn-outline btn-sm">Mark Fulfilled</button>
+            <button type="button" id="rd-unresolved-btn" class="btn btn-outline btn-sm">Mark Unresolved</button>
+            <button type="button" id="rd-share-btn" class="btn btn-secondary btn-sm">Share Safe Status Link</button>
+            <button type="button" id="rd-cancel-btn" class="btn btn-outline btn-sm">Cancel Request</button>
+          </div>
+        </div>
+
+        <div id="rd-share-panel" class="alert alert-info hidden" style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span><strong>Privacy-Safe Share Link:</strong> <a id="rd-share-url" href="#" target="_blank" rel="noopener"></a></span>
+          <span style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a id="rd-wa-share" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">Share via WhatsApp</a>
+            <button type="button" id="rd-disable-share-btn" class="btn btn-outline btn-sm">Disable Link</button>
+          </span>
+        </div>
+
+        <div class="alert alert-warning" id="rd-safety-notice"></div>
+        <div class="alert alert-error hidden" id="rd-fallback-banner"></div>
+        <div class="alert alert-error hidden" id="rd-live-conn-alert"></div>
+
+        <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--primary-red);">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div>
+              <h2 style="margin: 0;">Live Request Tracking</h2>
+              <p class="form-hint" id="rd-live-poll-meta" style="margin: 4px 0 0;">Auto-refreshes every 15 seconds &middot; Private donor phone numbers hidden</p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span id="rd-hosp-ver-badge" class="badge badge-neutral">Hospital: Unconfirmed</span>
+              <button type="button" id="rd-refresh-live-btn" class="btn btn-outline btn-sm">Refresh Now</button>
+            </div>
+          </div>
+          <div class="grid-4" id="rd-live-counters" style="margin: 14px 0;"></div>
+          <div id="rd-timeline-list" style="display: grid; gap: 8px;"></div>
+          <div id="rd-next-steps" class="alert alert-info" style="margin: 14px 0 0;"></div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 24px;">
+          <div class="card">
+            <h2 style="margin-top: 0;">Request Information</h2>
+            <p><strong>Hospital:</strong> <span id="rd-hospital"></span></p>
+            <p><strong>City / Area:</strong> <span id="rd-location"></span></p>
+            <p><strong>Units Requested:</strong> <span id="rd-units"></span></p>
+            <p><strong>Urgency:</strong> <span id="rd-urgency"></span></p>
+            <p><strong>Escalation Stage:</strong> Stage <span id="rd-stage"></span> of 5</p>
+            <p><strong>Expires At:</strong> <span id="rd-expires"></span></p>
+            <p style="margin-bottom: 0;"><strong>Notes:</strong> <span id="rd-notes"></span></p>
+          </div>
+
+          <div class="card">
+            <h2 style="margin-top: 0;">Recorded Status History</h2>
+            <div id="rd-history-list" style="display: grid; gap: 10px;"></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h2 style="margin-top: 0;">Prioritized Candidate Donors</h2>
+            <p class="form-hint">Potential matches only. Phone numbers and exact addresses remain hidden.</p>
+            <div id="rd-candidates-list" style="display: grid; gap: 10px;"></div>
+          </div>
+
+          <div class="card">
+            <h2 style="margin-top: 0;">Donor Responses</h2>
+            <p class="form-hint">Acceptance opens private communication but does not confirm donation completion.</p>
+            <div id="rd-responses-list" style="display: grid; gap: 10px;"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div>
+              <h2 style="margin: 0;">Live Donor Arrival Map (Approximate Radius)</h2>
+              <p class="form-hint" style="margin: 4px 0 0;">Shows an obfuscated ~1 km safety radius (like Swiggy/Zomato area circles) without exposing exact donor GPS coordinates.</p>
+            </div>
+            <span id="rd-tracking-badge" class="badge badge-neutral">Waiting for donor</span>
+          </div>
+          <div id="rd-tracking-status-list" style="margin: 12px 0; display: grid; gap: 8px;"></div>
+          <div id="rd-arrival-map" style="height: 280px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--bg);"></div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h2 style="margin-top: 0;">Hospital &amp; Blood-Bank Contact Log</h2>
+          <p class="form-hint">Track direct calls and availability confirmations with licensed blood centres.</p>
+          <div id="rd-bb-attempts-list" style="display: grid; gap: 10px;"></div>
+        </div>
+
+        <div class="card" id="rd-coordinator-card" style="margin-top: 20px;">
+          <h2 style="margin-top: 0;">Emergency Coordinator Delegation</h2>
+          <p class="form-hint">Authorize a trusted registered user to monitor progress, log blood-bank outcomes, and chat with accepting donors for this request only. Access can be revoked anytime.</p>
+          <div id="rd-coord-alert" class="alert hidden"></div>
+          <form id="rd-coord-invite-form" class="hidden" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+            <input type="text" id="rd-coord-identifier" class="form-control" style="flex: 1; min-width: 220px;" required placeholder="Trusted user email or phone number" />
+            <button type="submit" class="btn btn-secondary btn-sm">Authorize Coordinator</button>
+          </form>
+          <form id="rd-coord-progress-form" class="hidden" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+            <input type="text" id="rd-coord-progress-notes" class="form-control" style="flex: 1; min-width: 240px;" required minlength="3" placeholder="Coordinator progress update (e.g., Called district blood bank counter)" />
+            <button type="submit" class="btn btn-primary btn-sm">Post Progress Update</button>
+          </form>
+          <div id="rd-coordinators-list" style="display: grid; gap: 8px;"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/request-details.js"></script>
+</body>
+</html>

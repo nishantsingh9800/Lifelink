@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div id="dash-loading" class="card">Loading your verified workspace...</div>
+      <div id="dash-content" class="hidden">
+        <div
+          style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;">
+          <div>
+            <span class="badge badge-red" id="dash-role-badge">Role</span>
+            <span class="badge badge-neutral" id="dash-verified-badge" style="margin-left: 6px;">Verification
+              Status</span>
+            <span class="badge badge-neutral" id="dash-aadhaar-badge" style="margin-left: 6px;">Aadhaar Status</span>
+            <h1 style="margin: 10px 0 4px;" id="dash-welcome">Welcome</h1>
+            <p style="margin: 0; color: var(--text-secondary);" id="dash-location-line"></p>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="/pages/create-request.html?quick=1" class="btn btn-primary">Request Blood Now</a>
+            <a href="/pages/my-requests.html" class="btn btn-secondary">My Requests</a>
+            <a href="/pages/donor-profile.html" class="btn btn-outline">Donor Profile</a>
+            <a href="/pages/hospital-portal.html" id="dash-hospital-btn" class="btn btn-outline hidden">Hospital
+              Portal</a>
+          </div>
+        </div>
+
+        <div id="phone-verify-card" class="card hidden"
+          style="margin-bottom: 24px; border-left: 4px solid var(--warning);">
+          <h2 style="margin-top: 0; font-size: 1.15rem;">Phone Verification Required</h2>
+          <p style="color: var(--text-secondary); margin-top: 4px;" id="phone-verify-desc"></p>
+          <div id="phone-verify-alert" class="alert hidden"></div>
+          <div id="otp-live-controls" class="hidden"
+            style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <button type="button" id="send-otp-btn" class="btn btn-secondary btn-sm">Send SMS OTP</button>
+            <input type="text" id="otp-code-input" class="form-control" style="max-width: 180px;"
+              placeholder="Enter OTP code" />
+            <button type="button" id="verify-otp-btn" class="btn btn-primary btn-sm">Verify OTP</button>
+          </div>
+          <div id="otp-dev-controls" class="hidden">
+            <button type="button" id="dev-verify-phone-btn" class="btn btn-primary btn-sm">
+              Development-Only: Verify Phone Locally
+            </button>
+            <span class="form-hint" style="margin-left: 10px;">Enabled only when live SMS OTP is not configured.</span>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h2 style="margin-top: 0;">Profile &amp; Location Settings</h2>
+            <div id="profile-update-alert" class="alert hidden"></div>
+            <form id="profile-update-form">
+              <div class="form-group">
+                <label for="prof-name">Full Name</label>
+                <input type="text" id="prof-name" class="form-control" required minlength="2" />
+              </div>
+              <div class="form-group">
+                <label for="prof-city">City</label>
+                <input type="text" id="prof-city" class="form-control" required minlength="2" />
+              </div>
+              <div class="form-group">
+                <label for="prof-location">Approximate Location</label>
+                <input type="text" id="prof-location" class="form-control" required minlength="2" />
+              </div>
+              <div class="form-group">
+                <label>Registered Phone (Private)</label>
+                <input type="text" id="prof-phone" class="form-control" disabled />
+              </div>
+              <button type="submit" class="btn btn-primary">Save Profile Updates</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h2 style="margin-top: 0;">Safety &amp; Privacy Commitments</h2>
+            <p style="color: var(--text-secondary);">
+              Your account is protected with role-based authorization and location privacy controls.
+            </p>
+            <ul style="padding-left: 20px; color: var(--text-secondary);">
+              <li><strong>Private Phone Protection:</strong> Your phone number is never visible in public donor
+                searches.</li>
+              <li><strong>Approximate Area Only:</strong> Only your city and general area are used for preliminary
+                coordination.</li>
+              <li><strong>Hospital First:</strong> In immediate emergencies, contact your treating hospital's blood bank
+                directly alongside any platform outreach.</li>
+              <li><strong>Licensed Screening:</strong> Final blood compatibility and donor medical eligibility are
+                determined solely by licensed blood centres.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 24px;">
+          <h2 style="margin-top: 0;">Emergency Coordinator Assignments</h2>
+          <p class="form-hint" style="margin-top: 0;">Requests where a requester explicitly authorized you to help
+            coordinate blood banks and donor chats.</p>
+          <div id="dash-coord-alert" class="alert hidden"></div>
+          <div id="dash-coord-list" style="display: grid; gap: 10px;">
+            <span class="form-hint">Checking coordinator invitations...</span>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 24px;">
+          <div class="card">
+            <h2 style="margin-top: 0;">Family Emergency Account</h2>
+            <p class="form-hint" style="margin-top: 0;">Authorize trusted family members to create or manage blood
+              requests on your behalf. Permissions can be revoked anytime.</p>
+            <div id="dash-family-alert" class="alert hidden"></div>
+            <form id="dash-family-invite-form" style="display: grid; gap: 8px; margin-bottom: 12px;">
+              <input type="text" id="fam-identifier" class="form-control" required
+                placeholder="Family member email or phone number" />
+              <input type="text" id="fam-relation" class="form-control" required
+                placeholder="Relationship (e.g., Spouse, Sibling, Parent)" />
+              <button type="submit" class="btn btn-secondary btn-sm">Authorize Family Member</button>
+            </form>
+            <div id="dash-family-list" style="display: grid; gap: 8px;"></div>
+          </div>
+
+          <div class="card">
+            <h2 style="margin-top: 0;">Notification &amp; Accessibility Preferences</h2>
+            <div id="dash-prefs-alert" class="alert hidden"></div>
+            <form id="dash-prefs-form" style="display: grid; gap: 10px;">
+              <label class="checkbox-row">
+                <input type="checkbox" id="pref-in-app" checked />
+                <span>Receive in-app emergency &amp; lifecycle notifications</span>
+              </label>
+              <label class="checkbox-row">
+                <input type="checkbox" id="pref-quiet-hours" checked />
+                <span>Respect configured donor quiet hours for normal requests</span>
+              </label>
+              <label class="checkbox-row">
+                <input type="checkbox" id="pref-emerg-override" checked />
+                <span>Allow critical emergency requests to bypass quiet hours</span>
+              </label>
+              <button type="submit" class="btn btn-primary btn-sm">Save Notification Preferences</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 24px;">
+          <h2 style="margin-top: 0;">Community Referral &amp; Awareness</h2>
+          <p class="form-hint" style="margin-top: 0;">Invite friends to register voluntarily. LifeLink prevents spam and
+            does not operate competitive leaderboards.</p>
+          <div id="dash-referral-box">Loading referral summary...</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/dashboard.js"></script>
+</body>
+
+</html>

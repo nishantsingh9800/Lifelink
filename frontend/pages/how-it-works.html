@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How It Works — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-red">Workflow &amp; Safety Model</span>
+        <h1 style="margin: 10px 0 8px;">How LifeLink Coordinates Blood Emergencies</h1>
+        <p>From verified request creation to 5-stage progressive escalation and hospital fallback.</p>
+      </div>
+
+      <div class="alert alert-warning">
+        <strong>Critical Safety Rule:</strong> Never delay urgent medical care while waiting for donor matching or software escalation. Always coordinate immediately with your treating hospital's transfusion service.
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2 style="margin-top: 0;">1. End-to-End Request Lifecycle</h2>
+          <ol style="padding-left: 20px; color: var(--text-secondary);">
+            <li><strong>Register &amp; Verify:</strong> Users register as a Requester or Donor and verify their phone number.</li>
+            <li><strong>Submit Request:</strong> Requester specifies required blood group, units, hospital, city, and urgency.</li>
+            <li><strong>Rule-Based Prioritization:</strong> Candidate donors are ranked by availability, proximity, and verification.</li>
+            <li><strong>Multi-Donor Alerts:</strong> Multiple eligible candidates receive notifications with <em>I CAN HELP</em> or <em>NOT AVAILABLE</em> actions.</li>
+            <li><strong>Authorized Private Chat:</strong> Accepting a request unlocks a private chat between requester and donor without exposing phone numbers.</li>
+            <li><strong>Outcome Recording:</strong> Requests remain active or unresolved until genuine fulfilment, cancellation, or expiry is recorded.</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-top: 0;">2. Five-Stage Progressive Escalation</h2>
+          <ol style="padding-left: 20px; color: var(--text-secondary);">
+            <li><strong>Stage 1 — Nearby Potential Donors:</strong> Notify the closest suitable candidates first.</li>
+            <li><strong>Stage 2 — Additional Nearby Candidates:</strong> Expand to more matching candidates if responses are insufficient.</li>
+            <li><strong>Stage 3 — Wider Search Radius:</strong> Broaden geographical scope using configurable city/distance rules.</li>
+            <li><strong>Stage 4 — Blood-Bank Assistance:</strong> Surface verified directory listings and official resources such as e-RaktKosh.</li>
+            <li><strong>Stage 5 — Hospital-Coordinated Search:</strong> Guide immediate contact with the treating hospital blood bank and licensed centres while keeping the request tracked as unresolved.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      LifeLinkUI.renderLayout("how-it-works");
+    });
+  </script>
+</body>
+</html>

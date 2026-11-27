@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Donor Profile &amp; Availability — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div class="section-header">
+        <h1>Donor Profile &amp; Availability</h1>
+        <p>Manage your blood group, availability status, emergency alert preference, and donation history.</p>
+      </div>
+
+      <div class="alert alert-info">
+        <strong>Medical Eligibility Notice:</strong> Platform donor profiles and verification badges indicate account
+        verification only. Final compatibility, health screening, and donation eligibility are determined exclusively by
+        licensed blood banks and healthcare professionals.
+      </div>
+
+      <div id="donor-alert" class="alert hidden"></div>
+      <div id="dp-freeze-banner" class="alert alert-warning hidden"></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2 style="margin-top: 0;">Donor Settings</h2>
+          <form id="donor-profile-form">
+            <div class="form-group">
+              <label for="dp-blood-group">Blood Group</label>
+              <select id="dp-blood-group" class="form-control" required>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="dp-availability">Availability Status</label>
+              <select id="dp-availability" class="form-control" required>
+                <option value="available_now">Available now</option>
+                <option value="available_today">Available today</option>
+                <option value="available_selected_dates">Available on selected dates</option>
+                <option value="emergency_only">Emergency requests only</option>
+                <option value="unavailable">Temporarily unavailable</option>
+              </select>
+              <div class="form-hint">You can update your availability at any time.</div>
+            </div>
+            <div class="form-group">
+              <label for="dp-last-donation">Last Recorded Donation Date (Optional)</label>
+              <input type="date" id="dp-last-donation" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="dp-contact-method">Preferred Contact Method</label>
+              <select id="dp-contact-method" class="form-control">
+                <option value="in_app_chat">Private In-App Chat (Recommended)</option>
+                <option value="consent_phone">Mutual-Consent Phone Sharing</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="checkbox-row">
+                <input type="checkbox" id="dp-notifications" checked />
+                <span>Opt in to receive emergency blood request notifications</span>
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Donor Profile</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-top: 0;">Verification &amp; Review Status</h2>
+          <p>
+            <strong>Account Verification:</strong>
+            <span id="dp-ver-badge" class="badge badge-neutral">Not created</span>
+          </p>
+          <p id="dp-review-note" style="color: var(--text-secondary);">
+            Save your donor profile to view your donation review advisory.
+          </p>
+          <hr style="border: 0; border-top: 1px solid var(--border); margin: 18px 0;" />
+          <h3 style="margin-top: 0; font-size: 1rem;">Quick Availability Update</h3>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline btn-sm quick-avail-btn" data-status="available_now">Available
+              Now</button>
+            <button type="button" class="btn btn-outline btn-sm quick-avail-btn" data-status="available_today">Available
+              Today</button>
+            <button type="button" class="btn btn-outline btn-sm quick-avail-btn" data-status="emergency_only">Emergency
+              Only</button>
+            <button type="button" class="btn btn-outline btn-sm quick-avail-btn"
+              data-status="unavailable">Unavailable</button>
+          </div>
+          <div style="margin-top: 12px;">
+            <button type="button" id="dp-record-donation-btn" class="btn btn-secondary btn-sm">Record Successful
+              Donation Today (3-Month Freeze)</button>
+          </div>
+          <hr style="border: 0; border-top: 1px solid var(--border); margin: 18px 0;" />
+          <h3 style="margin-top: 0; font-size: 1rem;">Supporting Document Upload</h3>
+          <p class="form-hint" style="margin-top: 0;">
+            Upload a blood donor card, government photo ID, or blood-bank slip (PDF, PNG, JPG, WEBP &middot; max 5 MB)
+            for administrator verification.
+          </p>
+          <form id="donor-doc-form" style="display: grid; gap: 10px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="doc-type">Document Type</label>
+              <select id="doc-type" class="form-control" required>
+                <option value="Blood Donor Card">Blood Donor Card</option>
+                <option value="Government Photo ID">Government Photo ID</option>
+                <option value="Blood Bank / Hospital Slip">Blood Bank / Hospital Slip</option>
+                <option value="Other Supporting Document">Other Supporting Document</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="doc-file">Select Document File</label>
+              <input type="file" id="doc-file" class="form-control" accept=".pdf,.png,.jpg,.jpeg,.webp" required />
+              <div id="doc-file-info" class="form-hint">No file selected.</div>
+            </div>
+            <button type="submit" id="doc-upload-btn" class="btn btn-secondary btn-sm">Upload Document for
+              Review</button>
+          </form>
+          <div id="donor-docs-list" style="display: grid; gap: 8px; margin-top: 14px;"></div>
+
+          <hr style="border: 0; border-top: 1px solid var(--border); margin: 18px 0;" />
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h3 style="margin: 0; font-size: 1rem;">Face Identity Verification</h3>
+            <span id="face-enroll-badge" class="badge badge-neutral">Not Enrolled</span>
+          </div>
+          <p class="form-hint" style="margin-top: 6px;">
+            Enroll your face once so live selfie checks confirm it is the registered donor accepting and donating —
+            preventing impersonation.
+          </p>
+          <div id="face-enroll-alert" class="alert hidden"></div>
+          <div id="face-camera-wrap" class="hidden" style="margin-bottom: 10px;">
+            <video id="face-video" autoplay playsinline
+              style="width: 100%; max-width: 320px; border-radius: var(--radius-md); border: 1px solid var(--border); background: #000;"></video>
+          </div>
+          <canvas id="face-canvas" class="hidden"></canvas>
+          <label class="checkbox-row" style="margin-bottom: 10px;">
+            <input type="checkbox" id="face-consent-cb" />
+            <span>I consent to LifeLink extracting and storing my facial descriptor for donor anti-impersonation
+              verification.</span>
+          </label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px;">
+            <button type="button" id="face-start-cam-btn" class="btn btn-outline btn-sm">Start Camera</button>
+            <button type="button" id="face-capture-enroll-btn" class="btn btn-primary btn-sm hidden">Capture &amp;
+              Enroll Face</button>
+            <button type="button" id="face-test-verify-btn" class="btn btn-secondary btn-sm hidden">Test Live
+              Match</button>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="face-file-input" style="font-size: 0.85rem;">Or enroll / test with a clear front-facing
+              photo</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+              <input type="file" id="face-file-input" class="form-control" accept="image/png,image/jpeg,image/webp"
+                style="flex: 1;" />
+              <button type="button" id="face-file-enroll-btn" class="btn btn-secondary btn-sm">Enroll Photo</button>
+              <button type="button" id="face-file-verify-btn" class="btn btn-outline btn-sm">Verify Photo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+          <h2 style="margin:0;">Donor Availability Calendar &amp; Quiet Hours</h2>
+          <span id="dp-cal-updated" class="form-hint"></span>
+        </div>
+        <p class="form-hint">Self-declared availability controls outreach only and is never treated as medical
+          eligibility.</p>
+        <div id="dp-cal-alert" class="alert hidden"></div>
+        <form id="donor-calendar-form">
+          <div class="grid-3">
+            <div class="form-group">
+              <label for="cal-dates">Selected Available Dates (YYYY-MM-DD, comma-separated)</label>
+              <input type="text" id="cal-dates" class="form-control" placeholder="e.g., 2026-11-28, 2026-11-30" />
+            </div>
+            <div class="form-group">
+              <label for="cal-distance">Preferred Search Distance (km)</label>
+              <input type="number" id="cal-distance" class="form-control" min="1" max="250" value="25" />
+            </div>
+            <div class="form-group">
+              <label for="cal-pause-until">Temporary Pause Until (Optional)</label>
+              <input type="date" id="cal-pause-until" class="form-control" />
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="cal-qh-start">Quiet Hours Start (24h HH:MM)</label>
+              <input type="time" id="cal-qh-start" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="cal-qh-end">Quiet Hours End (24h HH:MM)</label>
+              <input type="time" id="cal-qh-end" class="form-control" />
+            </div>
+          </div>
+          <button type="submit" class="btn btn-secondary btn-sm">Save Availability Calendar</button>
+        </form>
+      </div>
+
+      <div class="grid-2" style="margin-top: 24px;">
+        <div class="card">
+          <h2 style="margin-top: 0;">Donor Trust &amp; Reliability Indicators</h2>
+          <p class="form-hint" style="margin-top: 0;">Verified checks are clearly separated from self-declared values.
+            Declining a request carries zero penalty.</p>
+          <div id="dp-trust-box"><span class="form-hint">Save donor profile to view trust indicators.</span></div>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-top: 0;">Voluntary Appreciation &amp; Digital Card</h2>
+          <p class="form-hint" style="margin-top: 0;">Non-competitive recognition only. Not an official medical or
+            government certificate.</p>
+          <div id="dp-appreciation-box"><span class="form-hint">Save donor profile to view milestones.</span></div>
+          <label class="checkbox-row" style="margin-top: 10px;">
+            <input type="checkbox" id="dp-rec-public-cb" />
+            <span>Allow my recognition summary to show publicly (first name + milestone)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top: 24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div>
+            <h2 style="margin: 0;">Donation History Log &amp; Reminders</h2>
+            <p class="form-hint" style="margin: 4px 0 0;">Self-reported entries remain clearly tagged until confirmed by
+              a facility. Final donation intervals depend on donation type and healthcare screening.</p>
+          </div>
+          <button type="button" id="dp-reminder-btn" class="btn btn-outline btn-sm">Send Availability Reminder</button>
+        </div>
+        <div id="dp-donations-alert" class="alert hidden" style="margin-top: 10px;"></div>
+        <form id="dp-donation-add-form" class="grid-3" style="margin-top: 12px; align-items: end;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="don-rec-date">Donation Date</label>
+            <input type="date" id="don-rec-date" class="form-control" required />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="don-rec-type">Donation Type</label>
+            <select id="don-rec-type" class="form-control">
+              <option value="whole_blood">Whole Blood (90d guidance)</option>
+              <option value="platelets">Platelets (14d guidance)</option>
+              <option value="plasma">Plasma (28d guidance)</option>
+              <option value="double_red_cells">Double Red Cells (112d guidance)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label for="don-rec-facility">Licensed Facility Name</label>
+            <input type="text" id="don-rec-facility" class="form-control" required minlength="2"
+              placeholder="District Blood Centre" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">Add Self-Reported Donation</button>
+        </form>
+        <div id="dp-donations-list" style="display: grid; gap: 8px; margin-top: 14px;"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/donor-profile.js"></script>
+</body>
+
+</html>

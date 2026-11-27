@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="badge badge-red">Team LogicLoom &middot; GL Bajaj Mathura</span>
+        <h1 style="margin: 10px 0 8px;">About LifeLink</h1>
+        <p>Smart Blood Donor Matching &amp; Emergency Response System</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h2 style="margin-top: 0;">Why LifeLink Exists</h2>
+          <p style="color: var(--text-secondary);">
+            During blood emergencies, families often rely on fragmented phone calls, WhatsApp forwards,
+            and social media posts. This causes uncertain donor availability, uncoordinated follow-ups,
+            and public exposure of personal phone numbers.
+          </p>
+          <p style="color: var(--text-secondary); margin-bottom: 0;">
+            LifeLink brings donor prioritization, multi-donor alerts, progressive escalation,
+            privacy-preserving chat, blood-bank discovery, and guided assistance into a single platform.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2 style="margin-top: 0;">Clinical &amp; Operational Boundaries</h2>
+          <ul style="padding-left: 20px; color: var(--text-secondary); margin-bottom: 0;">
+            <li>LifeLink does not fabricate donor records or blood-bank stock numbers.</li>
+            <li>Basic ABO/Rh group matching is preliminary only; crossmatching and donor eligibility are decided by licensed healthcare professionals.</li>
+            <li>The LifeLink Assistant uses rule-based platform workflows and is not a medical professional.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      LifeLinkUI.renderLayout("about");
+    });
+  </script>
+</body>
+</html>

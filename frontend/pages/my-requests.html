@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Requests — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
+        <div>
+          <h1 style="margin: 0 0 4px;">My Blood Requests</h1>
+          <p style="margin: 0; color: var(--text-secondary);">Track request lifecycle status, donor responses, and escalation progress.</p>
+        </div>
+        <a href="/pages/create-request.html" class="btn btn-primary">Create New Request</a>
+      </div>
+
+      <div id="my-requests-alert" class="alert hidden"></div>
+      <div id="my-requests-list"></div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/my-requests.js"></script>
+</body>
+</html>

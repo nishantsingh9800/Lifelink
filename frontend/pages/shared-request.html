@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared Blood Request Status — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section" id="main-content">
+    <div class="container">
+      <div class="card form-card" style="max-width: 680px;">
+        <span class="badge badge-red">Public Shared Request View</span>
+        <h1 style="margin: 10px 0 6px;">Emergency Coordination Status</h1>
+        <p class="form-hint" style="margin-top: 0;">
+          Shared publicly without exposing private phone numbers, documents, or personal conversations.
+        </p>
+
+        <div id="sr-alert" class="alert hidden"></div>
+        <div id="sr-loading">Loading shared request status...</div>
+
+        <div id="sr-body" class="hidden">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+            <strong id="sr-group" style="font-size: 1.4rem; color: var(--primary-red);"></strong>
+            <div>
+              <span id="sr-status" class="badge badge-neutral"></span>
+              <span id="sr-hosp-ver" class="badge badge-neutral" style="margin-left: 6px;"></span>
+            </div>
+          </div>
+          <p><strong>Hospital:</strong> <span id="sr-hospital"></span></p>
+          <p><strong>City / Area:</strong> <span id="sr-city"></span></p>
+          <p><strong>Urgency:</strong> <span id="sr-urgency"></span></p>
+          <p><strong>Expires At:</strong> <span id="sr-expires"></span></p>
+          <div id="sr-notice" class="alert alert-warning"></div>
+
+          <hr style="border: 0; border-top: 1px solid var(--border); margin: 18px 0;" />
+          <p class="form-hint">Able to donate safely via a licensed hospital blood bank? Register or log in to respond directly.</p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;">
+            <a href="/pages/register.html" class="btn btn-primary btn-sm">Register as Donor</a>
+            <a href="/pages/login.html" class="btn btn-secondary btn-sm">Sign In to Respond</a>
+          </div>
+
+          <details>
+            <summary style="cursor: pointer; font-weight: 600;">Report Suspicious Shared Request</summary>
+            <form id="sr-report-form" style="display: grid; gap: 8px; margin-top: 10px;">
+              <input type="text" id="sr-rep-reason" class="form-control" required minlength="3" placeholder="Reason (e.g., Requesting money or suspicious details)" />
+              <textarea id="sr-rep-desc" class="form-control" rows="2" placeholder="Optional details for platform moderators"></textarea>
+              <button type="submit" class="btn btn-outline btn-sm">Submit Safety Report</button>
+            </form>
+          </details>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/shared-request.js"></script>
+</body>
+</html>

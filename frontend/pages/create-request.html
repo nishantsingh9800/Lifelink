@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Blood Now — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div class="card form-card" style="max-width: 760px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span class="badge badge-red">Quick Emergency Request</span>
+          <label class="checkbox-row" style="font-size: 0.88rem; margin: 0;">
+            <input type="checkbox" id="req-quick-mode" checked />
+            <span>Quick Emergency Flow (fewer steps)</span>
+          </label>
+        </div>
+        <h1 style="margin: 10px 0 6px;">Request Blood Now</h1>
+        <p style="color: var(--text-secondary); margin-top: 0;">
+          Submit a blood request for a patient (yourself or on behalf of a family member). Review details carefully
+          before sending.
+        </p>
+
+        <div class="alert alert-warning">
+          <strong>Emergency Medical Notice:</strong> Selecting Urgent or Emergency prioritizes platform alerts but does
+          <strong>not</strong> constitute medical verification. Contact the treating hospital or licensed blood bank
+          immediately and never delay urgent care while waiting for donor responses.
+        </div>
+
+        <div id="req-form-alert" class="alert hidden"></div>
+        <div id="req-aadhaar-off-note" class="alert alert-info hidden"></div>
+
+        <div id="req-aadhaar-verify-card" class="card hidden" style="margin-bottom: 16px; border-left: 4px solid var(--primary-red); background: var(--bg);">
+          <strong>Aadhaar Verification Required Before Receiving Blood</strong>
+          <p class="form-hint" style="margin: 4px 0 8px;">Enter your 12-digit Aadhaar once to verify your identity for blood requests.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <input type="text" id="req-aadhaar-num" class="form-control" style="flex:1; min-width:210px;" maxlength="14" inputmode="numeric" placeholder="12-digit Aadhaar number" />
+            <button type="button" id="req-aadhaar-btn" class="btn btn-secondary btn-sm">Verify Aadhaar</button>
+          </div>
+          <label class="checkbox-row" style="margin-top:8px;">
+            <input type="checkbox" id="req-aadhaar-consent" />
+            <span>I consent to Aadhaar verification before requesting blood.</span>
+          </label>
+        </div>
+
+        <form id="create-request-form">
+          <div class="grid-2 hidden" id="req-behalf-wrap">
+            <div class="form-group">
+              <label for="req-behalf-select">Creating Request For</label>
+              <select id="req-behalf-select" class="form-control">
+                <option value="">Myself (Own Account)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="req-patient">Patient / Ward Reference Name</label>
+              <input type="text" id="req-patient" class="form-control" required minlength="2"
+                placeholder="e.g., Ward 4 / R. Kumar" />
+            </div>
+            <div class="form-group">
+              <label for="req-blood-group">Required Blood Group</label>
+              <select id="req-blood-group" class="form-control" required>
+                <option value="">Select blood group</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="req-units">Units Needed</label>
+              <input type="number" id="req-units" class="form-control" min="1" max="20" value="1" required />
+            </div>
+            <div class="form-group">
+              <label for="req-urgency">Urgency Level</label>
+              <select id="req-urgency" class="form-control" required>
+                <option value="emergency" selected>Emergency (Immediate Need)</option>
+                <option value="urgent">Urgent</option>
+                <option value="normal">Normal / Scheduled</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="req-hospital">Hospital Name</label>
+              <input type="text" id="req-hospital" class="form-control" required minlength="2"
+                placeholder="e.g., District Hospital Mathura" />
+            </div>
+            <div class="form-group">
+              <label for="req-hospital-loc">Hospital Location / Area</label>
+              <input type="text" id="req-hospital-loc" class="form-control" required minlength="2"
+                placeholder="e.g., Dampier Nagar" />
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="req-city">City</label>
+              <input type="text" id="req-city" class="form-control" required minlength="2" placeholder="Mathura" />
+            </div>
+            <div class="form-group">
+              <label for="req-approx-loc">Approximate Location / Sector</label>
+              <input type="text" id="req-approx-loc" class="form-control" required minlength="2"
+                placeholder="General area or landmark" />
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="req-when">Required Date &amp; Time</label>
+              <input type="datetime-local" id="req-when" class="form-control" />
+            </div>
+            <div class="form-group">
+              <label for="req-contact-pref">Contact Preference</label>
+              <select id="req-contact-pref" class="form-control">
+                <option value="in_app_chat">Private In-App Chat (Recommended)</option>
+                <option value="consent_phone">Mutual-Consent Phone Sharing</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="req-coord-name">Authorized Family / Coordinator Name (Optional)</label>
+              <input type="text" id="req-coord-name" class="form-control" maxlength="120"
+                placeholder="If submitting on behalf of family" />
+            </div>
+            <div class="form-group">
+              <label for="req-coord-rel">Relationship / Role (Optional)</label>
+              <input type="text" id="req-coord-rel" class="form-control" maxlength="80"
+                placeholder="e.g., Sister / Attendant" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="req-notes">Optional Supporting Coordination Info (No private medical history)</label>
+            <textarea id="req-notes" class="form-control" rows="2" maxlength="600"
+              placeholder="e.g., Blood Bank Counter #2, Case Ref"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-row">
+              <input type="checkbox" id="req-consent" required />
+              <span>I consent to LifeLink processing and sharing these coordination details (phone number stays private
+                unless mutually consented).</span>
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" id="req-review-btn" class="btn btn-secondary" style="flex: 1;">Review Request Before
+              Submitting</button>
+            <button type="submit" id="req-submit-btn" class="btn btn-primary" style="flex: 1;">Submit Blood
+              Request</button>
+          </div>
+        </form>
+
+        <div id="req-review-panel" class="card hidden"
+          style="margin-top: 18px; border: 2px solid var(--primary-red); background: var(--bg);">
+          <h2 style="margin-top: 0; font-size: 1.1rem;">Review Emergency Request Details</h2>
+          <div id="req-review-summary" style="display: grid; gap: 6px; font-size: 0.94rem;"></div>
+          <div class="alert alert-warning" style="margin: 12px 0;">
+            Confirming will create this request once (duplicate active requests for the same blood group &amp; city are
+            prevented automatically).
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" id="req-edit-btn" class="btn btn-outline btn-sm">Edit Details</button>
+            <button type="button" id="req-confirm-submit-btn" class="btn btn-primary btn-sm">Confirm &amp; Submit
+              Request</button>
+          </div>
+        </div>
+
+        <div id="req-confirmation-panel" class="card hidden"
+          style="margin-top: 18px; border-top: 4px solid var(--success);">
+          <span class="badge badge-success">Request Recorded</span>
+          <h2 style="margin: 10px 0 6px;">Blood Request Submitted</h2>
+          <p id="req-confirm-details" style="margin: 0 0 12px;"></p>
+          <div class="alert alert-info" id="req-confirm-safety" style="margin-bottom: 14px;"></div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a id="req-track-link" href="#" class="btn btn-primary btn-sm">Open Live Request Tracking</a>
+            <a href="/pages/blood-banks.html" class="btn btn-outline btn-sm">View Nearby Blood Banks</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/create-request.js"></script>
+</body>
+
+</html>

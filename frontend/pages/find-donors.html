@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find Potential Donors — LifeLink</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main class="section">
+    <div class="container">
+      <div class="section-header">
+        <h1>Find Potential Donors</h1>
+        <p>Search registered donors who have marked themselves available. Phone numbers and exact home addresses are kept private.</p>
+      </div>
+
+      <div class="alert alert-info">
+        <strong>Preliminary Match Only:</strong> Platform results show candidate donors only. Final compatibility, health screening, and donation eligibility must be determined by a licensed blood bank or healthcare professional.
+      </div>
+
+      <div class="card" style="margin-bottom: 24px;">
+        <form id="donor-search-form" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+          <div class="form-group" style="margin-bottom: 0; min-width: 180px; flex: 1;">
+            <label for="search-blood-group">Blood Group</label>
+            <select id="search-blood-group" class="form-control">
+              <option value="">All blood groups</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0; min-width: 220px; flex: 2;">
+            <label for="search-city">City</label>
+            <input type="text" id="search-city" class="form-control" placeholder="e.g., Mathura, Agra" />
+          </div>
+          <button type="submit" class="btn btn-primary">Search Candidates</button>
+        </form>
+      </div>
+
+      <div id="donor-search-alert" class="alert hidden"></div>
+      <div id="donor-results-container"></div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/pages/find-donors.js"></script>
+</body>
+</html>

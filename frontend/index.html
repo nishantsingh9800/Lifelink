@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LifeLink — Smart Blood Donor Matching &amp; Emergency Response System</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+  <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+  <div id="site-header-mount"></div>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="badge badge-red">Emergency Coordination Platform &middot; Team LogicLoom</span>
+          <h1>Coordinated blood donor response when every minute counts.</h1>
+          <p class="lead">
+            Most platforms help people find donors. LifeLink is designed to help coordinate the
+            entire emergency response &mdash; combining prioritized donor alerts, privacy-first
+            in-app chat, progressive search escalation, and blood-bank fallback assistance.
+          </p>
+          <div class="hero-actions">
+            <a href="/pages/create-request.html?quick=1" class="btn btn-primary" data-i18n="hero_cta_req">Request Blood Now</a>
+            <a href="/pages/register.html" class="btn btn-secondary" data-i18n="hero_cta_reg">Register Account</a>
+            <a href="/pages/find-donors.html" class="btn btn-outline" data-i18n="hero_cta_find">Search Donors</a>
+            <a href="/pages/blood-banks.html" class="btn btn-outline" data-i18n="hero_cta_bb">Blood-Bank Directory</a>
+            <button type="button" id="home-speak-btn" class="btn btn-outline" aria-label="Listen to guide in selected language">&#128266; Listen / सुनें</button>
+          </div>
+          <p style="margin-top: 16px; font-size: 0.85rem; color: var(--text-secondary);">
+            Medical Disclaimer: LifeLink does not guarantee blood availability, determine donor medical
+            eligibility, or replace licensed blood centres and hospital transfusion services.
+          </p>
+        </div>
+
+        <div class="card" style="border-top: 4px solid var(--primary-red);">
+          <h2 style="margin-top: 0; font-size: 1.2rem;">How LifeLink Coordinates an Emergency</h2>
+          <div style="display: grid; gap: 14px; margin-top: 16px;">
+            <div class="step-item">
+              <span class="step-num">1</span>
+              <div>
+                <strong>Structured Request &amp; Verification</strong>
+                <div class="form-hint">Verified requesters submit hospital location, blood group, and urgency.</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <span class="step-num">2</span>
+              <div>
+                <strong>Rule-Based Prioritized Alerts</strong>
+                <div class="form-hint">Nearby available potential donors are notified without exposing phone numbers.</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <span class="step-num">3</span>
+              <div>
+                <strong>Private Chat &amp; Mutual Consent</strong>
+                <div class="form-hint">In-app chat opens only after donor acceptance; phone sharing requires mutual consent.</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <span class="step-num">4</span>
+              <div>
+                <strong>5-Stage Escalation &amp; Blood-Bank Fallback</strong>
+                <div class="form-hint">Expands radius automatically and directs to licensed blood banks if needed.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="card" style="margin-bottom: 24px; border-left: 5px solid var(--primary-red); background: var(--bg);">
+          <h2 style="margin-top: 0;">Easy 3-Step Visual Guide (आसान 3 चरण)</h2>
+          <p style="margin: 0; color: var(--text-secondary);">Simple guidance in everyday language. Switch between English and हिन्दी anytime using the top bar.</p>
+          <div class="easy-guide-grid">
+            <a href="/pages/create-request.html?quick=1" class="easy-step-card" style="text-decoration:none; color:inherit;">
+              <strong style="color:var(--primary-red); font-size:1.05rem;">1. Request Blood Now</strong>
+              <span style="color:var(--text-secondary); font-size:0.92rem;">Tap the red button, choose blood group and hospital name.</span>
+            </a>
+            <a href="/pages/find-donors.html" class="easy-step-card" style="text-decoration:none; color:inherit;">
+              <strong style="color:var(--primary-red); font-size:1.05rem;">2. Find Potential Donors</strong>
+              <span style="color:var(--text-secondary); font-size:0.92rem;">Nearby verified helpers receive safe alerts without seeing your phone number.</span>
+            </a>
+            <a href="/pages/blood-banks.html" class="easy-step-card" style="text-decoration:none; color:inherit;">
+              <strong style="color:var(--primary-red); font-size:1.05rem;">3. Hospital &amp; Blood Bank</strong>
+              <span style="color:var(--text-secondary); font-size:0.92rem;">View verified blood-bank phone numbers and directions immediately.</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2>Built for Safety, Privacy, and Accountability</h2>
+          <p>Designed to replace scattered social forwards and unverified calls with structured coordination.</p>
+        </div>
+        <div class="grid-3">
+          <div class="card">
+            <div class="badge badge-red" style="margin-bottom: 10px;">Privacy Protection</div>
+            <h3 style="margin-top: 0;">Privacy-First Communication</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 0;">
+              Phone numbers and exact residential addresses are never shown in donor search results.
+              Private conversations open only between a requester and an accepting donor.
+            </p>
+          </div>
+          <div class="card">
+            <div class="badge badge-red" style="margin-bottom: 10px;">Rule-Based Priority</div>
+            <h3 style="margin-top: 0;">Transparent Donor Matching</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 0;">
+              Candidates are prioritized using transparent rules: availability status, city/proximity,
+              verification state, and notification opt-in. Final eligibility rests with the blood bank.
+            </p>
+          </div>
+          <div class="card">
+            <div class="badge badge-red" style="margin-bottom: 10px;">Hospital Fallback</div>
+            <h3 style="margin-top: 0;">Honest Escalation Workflow</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 0;">
+              When donor responses are insufficient, LifeLink escalates to wider search and verified
+              blood-bank directory resources without fabricating stock availability.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+      <div class="container">
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+            <div>
+              <h2 style="margin: 0 0 6px;">Supported ABO / Rh Blood Groups</h2>
+              <p style="margin: 0; color: var(--text-secondary);">
+                Preliminary group matching only. Final compatibility, crossmatching, and screening are performed exclusively by licensed blood centres.
+              </p>
+            </div>
+            <a href="/pages/how-it-works.html" class="btn btn-outline btn-sm">View Escalation Protocol</a>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px;">
+            <span class="badge badge-red" style="font-size: 0.92rem; padding: 6px 14px;">A+</span>
+            <span class="badge badge-red" style="font-size: 0.92rem; padding: 6px 14px;">A-</span>
+            <span class="badge badge-red" style="font-size: 0.92rem; padding: 6px 14px;">B+</span>
+            <span class="badge badge-red" style="font-size: 0.92rem; padding: 6px 14px;">B-</span>
+            <span class="badge badge-red" style="font-size: 0.92rem; padding: 6px 14px;">AB+</span>
+            <span class="badge badge-red" style="font-size: 0.92rem; padding: 6px 14px;">AB-</span>
+            <span class="badge badge-red" style="font-size: 0.92rem; padding: 6px 14px;">O+</span>
+            <span class="badge badge-red" style="font-size: 0.92rem; padding: 6px 14px;">O-</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/components.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      LifeLinkUI.renderLayout("home");
+      document.getElementById("home-speak-btn")?.addEventListener("click", () => {
+        LifeLinkUI.speakPageSummary();
+      });
+    });
+  </script>
+</body>
+</html>
