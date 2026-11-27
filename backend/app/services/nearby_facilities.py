@@ -5,10 +5,46 @@ from urllib.parse import quote_plus
 
 import httpx
 
-_CACHE_TTL_SECONDS = 300
+_CACHE_TTL_SECONDS = 600
 _NEARBY_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
-_HTTP_HEADERS = {"User-Agent": "LifeLink-BloodDonorApp/1.0 (https://github.com/lifelink)"}
+_CITY_COORDS_CACHE: Dict[str, Tuple[float, float]] = {}
+_HTTP_HEADERS = {"User-Agent": "LifeLink-BloodDonorApp/1.0 (+https://lifelink-ten-xi.vercel.app)"}
 ERAKT_KOSH_PORTAL_URL = "https://www.eraktkosh.in/BLDAHIMS/bloodbank/transactions/bbpublicindex.html"
+
+_INDIA_CITY_COORDS: Dict[str, Tuple[float, float]] = {
+    "delhi": (28.6328, 77.2197),
+    "new delhi": (28.6139, 77.2090),
+    "mathura": (27.4924, 77.6737),
+    "agra": (27.1767, 78.0081),
+    "noida": (28.5355, 77.3910),
+    "greater noida": (28.4744, 77.5040),
+    "gurgaon": (28.4595, 77.0266),
+    "gurugram": (28.4595, 77.0266),
+    "faridabad": (28.4089, 77.3178),
+    "ghaziabad": (28.6692, 77.4538),
+    "mumbai": (19.0760, 72.8777),
+    "pune": (18.5204, 73.8567),
+    "bengaluru": (12.9716, 77.5946),
+    "bangalore": (12.9716, 77.5946),
+    "hyderabad": (17.3850, 78.4867),
+    "chennai": (13.0827, 80.2707),
+    "kolkata": (22.5726, 88.3639),
+    "jaipur": (26.9124, 75.7873),
+    "lucknow": (26.8467, 80.9462),
+    "kanpur": (26.4499, 80.3319),
+    "varanasi": (25.3176, 82.9739),
+    "ahmedabad": (23.0225, 72.5714),
+    "surat": (21.1702, 72.8311),
+    "chandigarh": (30.7333, 76.7794),
+    "bhopal": (23.2599, 77.4126),
+    "indore": (22.7196, 75.8577),
+    "patna": (25.5941, 85.1376),
+    "nagpur": (21.1458, 79.0882),
+    "dehradun": (30.3165, 78.0322),
+    "meerut": (28.9845, 77.7064),
+    "ludhiana": (30.9010, 75.8573),
+    "amritsar": (31.6340, 74.8723),
+}
 
 
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -63,11 +99,16 @@ def _extract_address(item: Dict[str, Any], fallback_city: str) -> Tuple[str, str
 
 
 def _geocode_city_nominatim(client: httpx.Client, city: str) -> Optional[Tuple[float, float]]:
-    q = city.strip()
-    if not q:
+    raw = city.strip()
+    if not raw:
         return None
-    if "india" not in q.lower():
-        q = f"{q}, India"
+    norm = raw.lower()
+    if norm in _INDIA_CITY_COORDS:
+        return _INDIA_CITY_COORDS[norm]
+    if norm in _CITY_COORDS_CACHE:
+        return _CITY_COORDS_CACHE[norm]
+
+    q = raw if "india" in norm else f"{raw}, India"
     resp = client.get(
         "https://nominatim.openstreetmap.org/search",
         params={"q": q, "format": "jsonv2", "limit": 1},
@@ -76,7 +117,98 @@ def _geocode_city_nominatim(client: httpx.Client, city: str) -> Optional[Tuple[f
     rows = resp.json()
     if not rows:
         return None
-    return float(rows[0]["lat"]), float(rows[0]["lon"])
+    coords = (float(rows[0]["lat"]), float(rows[0]["lon"]))
+    _CITY_COORDS_CACHE[norm] = coords
+    return coords
+
+
+def _nominatim_get_with_retry(client: httpx.Client, params: Dict[str, Any]) -> List[Dict[str, Any]]:
+    for attempt in range(2):
+        resp = client.get("https://nominatim.openstreetmap.org/search", params=params)
+        if resp.status_code in (429, 503, 504) and attempt == 0:
+            time.sleep(1.0)
+            continue
+        resp.raise_for_status()
+        return resp.json() or []
+    return []
+
+
+def _query_overpass_facilities(
+    client: httpx.Client,
+    *,
+    center_lat: float,
+    center_lon: float,
+    city_label: str,
+    radius_km: float,
+) -> List[Dict[str, Any]]:
+    rad_m = int(min(25000, max(5000, radius_km * 1000)))
+    query = (
+        f"[out:json][timeout:10];"
+        f'(node["amenity"~"blood_bank|hospital"](around:{rad_m},{center_lat},{center_lon});'
+        f'way["amenity"~"blood_bank|hospital"](around:{rad_m},{center_lat},{center_lon});'
+        f'node["healthcare"~"blood_bank|hospital"](around:{rad_m},{center_lat},{center_lon}););'
+        f"out center 25;"
+    )
+    for endpoint in (
+        "https://overpass-api.de/api/interpreter",
+        "https://overpass.kumi.systems/api/interpreter",
+    ):
+        try:
+            resp = client.post(endpoint, data={"data": query}, timeout=10.0)
+            if resp.status_code != 200 or not resp.text.lstrip().startswith("{"):
+                continue
+            elements = resp.json().get("elements") or []
+            out: List[Dict[str, Any]] = []
+            for el in elements:
+                tags = el.get("tags") or {}
+                name = str(tags.get("name") or "").strip()
+                if not name:
+                    continue
+                center = el.get("center") or {}
+                f_lat = el.get("lat") if el.get("lat") is not None else center.get("lat")
+                f_lon = el.get("lon") if el.get("lon") is not None else center.get("lon")
+                if f_lat is None or f_lon is None:
+                    continue
+                f_lat_f, f_lon_f = float(f_lat), float(f_lon)
+                dist = haversine_km(center_lat, center_lon, f_lat_f, f_lon_f)
+                phone, mobile = _normalize_phone(tags)
+                addr_parts = [tags.get("addr:street"), tags.get("addr:suburb"), tags.get("addr:city") or city_label]
+                address = ", ".join(str(p).strip() for p in addr_parts if p and str(p).strip()) or (city_label or "Nearby")
+                resolved_city = str(tags.get("addr:city") or city_label or "Nearby").strip()
+                is_bb = "blood" in name.lower() or tags.get("amenity") == "blood_bank" or tags.get("healthcare") == "blood_bank"
+                maps_q = quote_plus(f"{name}, {address}")
+                google_q = quote_plus(f"{name} {resolved_city} contact number blood bank".strip())
+                out.append(
+                    {
+                        "id": f"osm-{el.get('type', 'n')}-{el.get('id', abs(hash(name)))}",
+                        "facility_name": name,
+                        "facility_type": "blood_bank" if is_bb else "hospital",
+                        "address": address,
+                        "city": resolved_city,
+                        "phone": phone or None,
+                        "mobile": mobile,
+                        "email": (tags.get("email") or tags.get("contact:email") or None),
+                        "website": (tags.get("website") or tags.get("contact:website") or None),
+                        "opening_hours": (tags.get("opening_hours") or None),
+                        "operator_type": (tags.get("operator:type") or None),
+                        "latitude": f_lat_f,
+                        "longitude": f_lon_f,
+                        "distance_km": dist,
+                        "directions_url": f"https://www.google.com/maps/search/?api=1&query={maps_q}",
+                        "google_search_url": f"https://www.google.com/search?q={google_q}",
+                        "eraktkosh_url": ERAKT_KOSH_PORTAL_URL,
+                        "verification_status": "external_public_listing",
+                        "availability_status": "contact_required",
+                        "availability_label": "Call facility / check e-RaktKosh for live units",
+                        "stock_notice": "Live blood-unit inventory is not exposed publicly; call the facility or check e-RaktKosh.",
+                        "source": "OpenStreetMap Overpass Live",
+                    }
+                )
+            if out:
+                return out
+        except (httpx.HTTPError, ValueError):
+            continue
+    return []
 
 
 def _query_nominatim_facilities(
@@ -100,9 +232,7 @@ def _query_nominatim_facilities(
         "viewbox": viewbox,
         "bounded": 1,
     }
-    resp = client.get("https://nominatim.openstreetmap.org/search", params=params)
-    resp.raise_for_status()
-    rows = resp.json() or []
+    rows = _nominatim_get_with_retry(client, params)
 
     out: List[Dict[str, Any]] = []
     for item in rows:
@@ -321,7 +451,9 @@ def fetch_nearby_external_facilities(
                     else:
                         terms = [("blood bank", "blood_bank"), ("hospital", "hospital")]
 
-                    for term, f_type in terms:
+                    for idx, (term, f_type) in enumerate(terms):
+                        if idx > 0:
+                            time.sleep(0.45)
                         found = _query_nominatim_facilities(
                             client,
                             search_term=term,
@@ -332,14 +464,33 @@ def fetch_nearby_external_facilities(
                             radius_km=radius_km,
                         )
                         items.extend(found)
+                    if not items:
+                        items = _query_overpass_facilities(
+                            client,
+                            center_lat=center_lat,
+                            center_lon=center_lon,
+                            city_label=norm_city,
+                            radius_km=radius_km,
+                        )
                     if items:
-                        sources.append("OpenStreetMap Live")
+                        sources.append(items[0].get("source", "OpenStreetMap Live"))
                     elif not provider_notice:
                         provider_notice = "No public OpenStreetMap facilities found within range; check e-RaktKosh or Google Maps."
                 else:
                     provider_notice = f"Could not resolve coordinates for '{norm_city}'. Try a major city name or click 'Use My GPS Location'."
             except (httpx.HTTPError, ValueError) as exc:
-                provider_notice = f"Live external map directory temporarily unreachable ({exc}). You can still search e-RaktKosh or Google Maps directly."
+                if center_lat is not None and center_lon is not None:
+                    items = _query_overpass_facilities(
+                        client,
+                        center_lat=center_lat,
+                        center_lon=center_lon,
+                        city_label=norm_city,
+                        radius_km=radius_km,
+                    )
+                if items:
+                    sources.append(items[0].get("source", "OpenStreetMap Overpass Live"))
+                else:
+                    provider_notice = f"Live external map directory temporarily unreachable ({exc}). You can still search e-RaktKosh or Google Maps directly."
 
     # Deduplicate by normalized facility name and filter by query text if specified
     seen: set[str] = set()

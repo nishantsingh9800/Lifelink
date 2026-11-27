@@ -33,6 +33,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function runSearch() {
     LifeLinkUI.clearAlert("bb-search-alert");
+    const searchBtn = document.getElementById("bb-search-btn");
+    if (searchBtn && !searchBtn.dataset.origText) {
+      searchBtn.dataset.origText = searchBtn.textContent.trim();
+    }
+    if (searchBtn) {
+      searchBtn.disabled = true;
+      searchBtn.textContent = "Searching...";
+    }
     resultsEl.innerHTML = `<div class="card">Searching nearby blood banks &amp; hospitals...</div>`;
 
     const city = cityInput.value.trim();
@@ -159,6 +167,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       resultsEl.innerHTML = "";
       LifeLinkUI.showAlert("bb-search-alert", err.message, "error");
+    } finally {
+      if (searchBtn) {
+        searchBtn.disabled = false;
+        searchBtn.textContent = searchBtn.dataset.origText || "Search Nearby";
+      }
     }
   }
 
