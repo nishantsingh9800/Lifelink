@@ -1,7 +1,6 @@
-# Root dependencies tuned for serverless platforms like Vercel (< 250 MB limit).
-# For local dev / Docker / Render with full OpenCV Haar face cascade, use backend/requirements.txt.
+# Serverless runtime dependencies for Vercel (< 250 MB unzipped limit).
+# Full local dev / Docker / Render dependencies (including OpenCV + uvicorn) live in backend/requirements.txt.
 fastapi>=0.115.0
-uvicorn[standard]>=0.32.0
 pydantic>=2.9.0
 pydantic-settings>=2.6.0
 python-dotenv>=1.0.1
