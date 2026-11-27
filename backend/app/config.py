@@ -1,10 +1,13 @@
 from functools import lru_cache
+import os
 from pathlib import Path
 from typing import List
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+IS_VERCEL = os.environ.get("VERCEL") == "1" or bool(os.environ.get("VERCEL_ENV"))
 
 
 class Settings(BaseSettings):
@@ -24,8 +27,14 @@ class Settings(BaseSettings):
 
     dev_auth_mode: bool = True
     app_jwt_secret: str = "lifelink-local-dev-secret-change-before-production-use"
-    dev_db_path: str = str(PROJECT_ROOT / "backend" / "lifelink_dev.db")
-    upload_dir: str = str(PROJECT_ROOT / "backend" / "uploads" / "donor_documents")
+    dev_db_path: str = (
+        "/tmp/lifelink_dev.db" if IS_VERCEL else str(PROJECT_ROOT / "backend" / "lifelink_dev.db")
+    )
+    upload_dir: str = (
+        "/tmp/lifelink_uploads/donor_documents"
+        if IS_VERCEL
+        else str(PROJECT_ROOT / "backend" / "uploads" / "donor_documents")
+    )
     max_document_size_bytes: int = 5 * 1024 * 1024
     access_token_expire_minutes: int = 60 * 12
 
@@ -61,6 +70,15 @@ class Settings(BaseSettings):
     stage2_max_donors: int = 12
     rate_limit_requests_per_minute: int = 60
     face_match_threshold: float = 0.80
+
+    @model_validator(mode="after")
+    def _enforce_vercel_tmp_paths(self) -> "Settings":
+        if IS_VERCEL:
+            if not str(self.dev_db_path).startswith("/tmp/"):
+                self.dev_db_path = "/tmp/lifelink_dev.db"
+            if not str(self.upload_dir).startswith("/tmp/"):
+                self.upload_dir = "/tmp/lifelink_uploads/donor_documents"
+        return self
 
     @property
     def is_supabase_configured(self) -> bool:
