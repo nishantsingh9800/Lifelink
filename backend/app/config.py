@@ -73,6 +73,11 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _enforce_vercel_tmp_paths(self) -> "Settings":
+        url = self.supabase_url.strip().rstrip("/")
+        for suffix in ("/rest/v1", "/auth/v1", "/storage/v1"):
+            if url.lower().endswith(suffix):
+                url = url[: -len(suffix)].rstrip("/")
+        self.supabase_url = url
         if IS_VERCEL:
             if not str(self.dev_db_path).startswith("/tmp/"):
                 self.dev_db_path = "/tmp/lifelink_dev.db"
