@@ -333,8 +333,8 @@ def test_unconfigured_supabase_with_dev_mode_disabled_returns_503():
     reset_repository_cache()
 
 
-def test_forgot_password_instagram_style_recovery_codes(test_client_and_settings):
-    test_client, _ = test_client_and_settings
+def test_forgot_password_instagram_style_recovery_codes(client):
+    test_client, _ = client
     reg = test_client.post(
         "/api/auth/register",
         json={
