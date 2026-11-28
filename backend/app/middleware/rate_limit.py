@@ -10,6 +10,8 @@ RATE_LIMITED_PREFIXES = (
     "/api/auth/login",
     "/api/auth/register",
     "/api/auth/otp/send",
+    "/api/auth/recover-with-code",
+    "/api/auth/forgot-password-email",
     "/api/reports",
 )
 

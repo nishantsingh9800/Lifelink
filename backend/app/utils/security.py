@@ -2,8 +2,9 @@ import hashlib
 import hmac
 import os
 import re
+import secrets
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import jwt
 
@@ -184,3 +185,31 @@ def decode_supabase_jwt(token: str, settings: Settings) -> Optional[Dict[str, An
         )
     except jwt.PyJWTError:
         return None
+
+
+_RECOVERY_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+
+
+def generate_recovery_codes(count: int = 6) -> List[str]:
+    """Generate single-use Instagram-style backup recovery codes formatted as XXXX-XXXX."""
+    codes: List[str] = []
+    for _ in range(count):
+        part1 = "".join(secrets.choice(_RECOVERY_ALPHABET) for _ in range(4))
+        part2 = "".join(secrets.choice(_RECOVERY_ALPHABET) for _ in range(4))
+        codes.append(f"{part1}-{part2}")
+    return codes
+
+
+def normalize_recovery_code(code: str) -> str:
+    """Normalize a backup recovery code by stripping hyphens/spaces and uppercasing."""
+    return re.sub(r"[^A-Za-z0-9]", "", (code or "").strip()).upper()
+
+
+def hash_recovery_code(code: str, settings: Settings) -> str:
+    """Compute keyed HMAC-SHA256 digest of a normalized backup recovery code."""
+    normalized = normalize_recovery_code(code)
+    return hmac.new(
+        settings.app_jwt_secret.encode("utf-8"),
+        normalized.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()

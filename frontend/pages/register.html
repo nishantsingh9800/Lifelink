@@ -111,6 +111,20 @@
           <button type="submit" id="reg-submit-btn" class="btn btn-primary" style="width: 100%;">Create Verified Account</button>
         </form>
 
+        <div id="reg-recovery-panel" class="card hidden" style="margin-top: 16px; border: 2px solid var(--primary-red); background: var(--bg);">
+          <span class="badge badge-success">Account Created</span>
+          <h2 style="margin: 10px 0 6px; font-size: 1.15rem;">Save Your 6 Backup Recovery Codes</h2>
+          <p class="form-hint" style="margin: 0 0 12px;">
+            Keep these one-time Instagram-style codes somewhere safe (screenshot, notes, or download). If you ever forget your password, any unused code lets you reset it immediately.
+          </p>
+          <div id="reg-recovery-codes-list" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; font-family: monospace; font-size: 1rem;"></div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="reg-copy-codes-btn" class="btn btn-outline btn-sm">Copy All Codes</button>
+            <button type="button" id="reg-download-codes-btn" class="btn btn-outline btn-sm">Download (.txt)</button>
+            <button type="button" id="reg-continue-btn" class="btn btn-primary btn-sm" style="flex: 1;">Saved — Continue to Dashboard</button>
+          </div>
+        </div>
+
         <p style="margin: 18px 0 0; text-align: center; font-size: 0.9rem; color: var(--text-secondary);">
           Already registered? <a href="/pages/login.html">Sign in</a>
         </p>

@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -113,4 +113,21 @@ class AuthResponse(BaseModel):
     token_type: str = "bearer"
     auth_mode: str
     user: ProfileResponse
+    message: str
+    recovery_codes: Optional[List[str]] = None
+
+
+class RecoverWithCodeRequest(BaseModel):
+    identifier: str = Field(..., min_length=3, max_length=254, description="Email address or phone number")
+    recovery_code: str = Field(..., min_length=6, max_length=32)
+    new_password: str = Field(..., min_length=8, max_length=128)
+
+
+class ForgotPasswordEmailRequest(BaseModel):
+    email: str = Field(..., min_length=5, max_length=254)
+
+
+class RecoveryCodesStatusResponse(BaseModel):
+    remaining_count: int
+    recovery_codes: Optional[List[str]] = None
     message: str

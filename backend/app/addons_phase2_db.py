@@ -172,6 +172,16 @@ class Phase2SQLiteMixin:
         rem_days = payload.get("reminder_frequency_days") or cur["reminder_frequency_days"]
 
         with self._connect() as conn:  # type: ignore[attr-defined]
+            existing_row = conn.execute(
+                "SELECT accessibility_prefs FROM profiles WHERE id = ? LIMIT 1", (user_id,)
+            ).fetchone()
+            if existing_row and existing_row["accessibility_prefs"]:
+                try:
+                    raw_a11y = json.loads(existing_row["accessibility_prefs"])
+                    if isinstance(raw_a11y, dict) and "recovery_hashes" in raw_a11y:
+                        a11y["recovery_hashes"] = raw_a11y["recovery_hashes"]
+                except Exception:
+                    pass
             conn.execute(
                 "UPDATE profiles SET preferred_language = ?, accessibility_prefs = ?, updated_at = ? WHERE id = ?",
                 (lang, json.dumps(a11y), now, user_id),
@@ -604,6 +614,10 @@ class Phase2SupabaseMixin:
             "text_size": payload.get("text_size") or cur["text_size"],
             "high_contrast": payload["high_contrast"] if "high_contrast" in payload else cur["high_contrast"],
         }
+        p = self.get_profile_by_id(user_id) or {}  # type: ignore[attr-defined]
+        existing_a11y = p.get("accessibility_prefs") or {}
+        if isinstance(existing_a11y, dict) and "recovery_hashes" in existing_a11y:
+            a11y["recovery_hashes"] = existing_a11y["recovery_hashes"]
         self.client.table("profiles").update(  # type: ignore[attr-defined]
             {"preferred_language": lang, "accessibility_prefs": a11y}
         ).eq("id", user_id).execute()

@@ -65,6 +65,47 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (data.access_token) {
         LifeLinkAPI.setSession(data.access_token, data.user);
+      }
+
+      const codes = data.recovery_codes || [];
+      const recoveryPanel = document.getElementById("reg-recovery-panel");
+      if (codes.length && recoveryPanel) {
+        form.classList.add("hidden");
+        recoveryPanel.classList.remove("hidden");
+        const listEl = document.getElementById("reg-recovery-codes-list");
+        if (listEl) {
+          listEl.innerHTML = codes
+            .map(
+              (c) => `<div style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; text-align: center; background: #fff; font-weight: 700;">${LifeLinkUI.escapeHtml(c)}</div>`
+            )
+            .join("");
+        }
+        const codesText = `LifeLink Backup Recovery Codes (${payload.email}):\n\n${codes.join("\n")}\n\nEach code can be used once on Login -> Forgot Password.`;
+        document.getElementById("reg-copy-codes-btn")?.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(codesText);
+            document.getElementById("reg-copy-codes-btn").textContent = "Copied!";
+          } catch {
+            /* clipboard fallback ignored */
+          }
+        });
+        document.getElementById("reg-download-codes-btn")?.addEventListener("click", () => {
+          const blob = new Blob([codesText], { type: "text/plain" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "lifelink-recovery-codes.txt";
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+        document.getElementById("reg-continue-btn")?.addEventListener("click", () => {
+          if (data.access_token) {
+            window.location.href = "/pages/dashboard.html";
+          } else {
+            window.location.href = "/pages/login.html";
+          }
+        });
+      } else if (data.access_token) {
         window.location.href = "/pages/dashboard.html";
       } else {
         LifeLinkUI.showAlert("register-alert", data.message, "success");

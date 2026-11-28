@@ -1,3 +1,5 @@
+import hmac
+import json
 import sqlite3
 import uuid
 from contextlib import contextmanager
@@ -496,6 +498,81 @@ class LocalDevSQLiteRepository(Phase1SQLiteMixin, Phase2SQLiteMixin, Phase3SQLit
                 (now, profile_id),
             )
         return self.get_profile_by_id(profile_id)
+
+    def set_recovery_hashes(self, profile_id: str, hashes: List[str]) -> None:
+        now = _utc_now_iso()
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT accessibility_prefs FROM profiles WHERE id = ? LIMIT 1", (profile_id,)
+            ).fetchone()
+            a11y: Dict[str, Any] = {"text_size": "normal", "high_contrast": False}
+            if row and row["accessibility_prefs"]:
+                try:
+                    parsed = json.loads(row["accessibility_prefs"])
+                    if isinstance(parsed, dict):
+                        a11y.update(parsed)
+                except Exception:
+                    pass
+            a11y["recovery_hashes"] = list(hashes)
+            conn.execute(
+                "UPDATE profiles SET accessibility_prefs = ?, updated_at = ? WHERE id = ?",
+                (json.dumps(a11y), now, profile_id),
+            )
+
+    def get_recovery_hashes(self, profile_id: str) -> List[str]:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT accessibility_prefs FROM profiles WHERE id = ? LIMIT 1", (profile_id,)
+            ).fetchone()
+        if not row or not row["accessibility_prefs"]:
+            return []
+        try:
+            parsed = json.loads(row["accessibility_prefs"])
+            if isinstance(parsed, dict):
+                return [str(x) for x in (parsed.get("recovery_hashes") or [])]
+        except Exception:
+            pass
+        return []
+
+    def recover_password_with_code(
+        self, *, identifier: str, code_hash: str, new_password: str
+    ) -> Tuple[Dict[str, Any], int]:
+        cleaned = identifier.strip()
+        with self._connect() as conn:
+            if "@" in cleaned:
+                row = conn.execute(
+                    "SELECT * FROM profiles WHERE lower(email) = ? LIMIT 1", (cleaned.lower(),)
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    "SELECT * FROM profiles WHERE phone_number = ? LIMIT 1", (normalize_phone(cleaned),)
+                ).fetchone()
+
+        if row is None or row["account_status"] != "active":
+            raise AuthenticationError("Invalid account or recovery code.")
+
+        profile_id = str(row["id"])
+        hashes = self.get_recovery_hashes(profile_id)
+        matched_idx = -1
+        for idx, stored in enumerate(hashes):
+            if hmac.compare_digest(str(stored), str(code_hash)):
+                matched_idx = idx
+                break
+        if matched_idx < 0:
+            raise AuthenticationError("Invalid or already-used recovery code.")
+
+        remaining = [h for idx, h in enumerate(hashes) if idx != matched_idx]
+        now = _utc_now_iso()
+        new_hash = hash_password(new_password)
+        with self._connect() as conn:
+            conn.execute(
+                "UPDATE profiles SET password_hash = ?, updated_at = ? WHERE id = ?",
+                (new_hash, now, profile_id),
+            )
+        self.set_recovery_hashes(profile_id, remaining)
+        profile = self.get_profile_by_id(profile_id)
+        assert profile is not None
+        return profile, len(remaining)
 
     def mark_aadhaar_verified(self, profile_id: str) -> Optional[Dict[str, Any]]:
         now = _utc_now_iso()
@@ -2783,6 +2860,68 @@ class SupabaseRepository(Phase1SupabaseMixin, Phase2SupabaseMixin, Phase3Supabas
             raise
         except Exception as exc:
             raise AuthenticationError("Invalid email or password.") from exc
+
+    def set_recovery_hashes(self, profile_id: str, hashes: List[str]) -> None:
+        profile = self.get_profile_by_id(profile_id) or {}
+        raw = profile.get("accessibility_prefs")
+        a11y: Dict[str, Any] = {"text_size": "normal", "high_contrast": False}
+        if isinstance(raw, dict):
+            a11y.update(raw)
+        a11y["recovery_hashes"] = list(hashes)
+        self.client.table("profiles").update({"accessibility_prefs": a11y}).eq("id", profile_id).execute()
+
+    def get_recovery_hashes(self, profile_id: str) -> List[str]:
+        profile = self.get_profile_by_id(profile_id) or {}
+        raw = profile.get("accessibility_prefs")
+        if isinstance(raw, dict):
+            return [str(x) for x in (raw.get("recovery_hashes") or [])]
+        return []
+
+    def recover_password_with_code(
+        self, *, identifier: str, code_hash: str, new_password: str
+    ) -> Tuple[Dict[str, Any], int]:
+        cleaned = identifier.strip()
+        if "@" in cleaned:
+            rows = (
+                self.client.table("profiles").select("*").eq("email", cleaned.lower()).limit(1).execute()
+            ).data or []
+        else:
+            rows = (
+                self.client.table("profiles")
+                .select("*")
+                .eq("phone_number", normalize_phone(cleaned))
+                .limit(1)
+                .execute()
+            ).data or []
+        if not rows or rows[0].get("account_status") != "active":
+            raise AuthenticationError("Invalid account or recovery code.")
+
+        profile = rows[0]
+        profile_id = str(profile["id"])
+        hashes = self.get_recovery_hashes(profile_id)
+        matched_idx = -1
+        for idx, stored in enumerate(hashes):
+            if hmac.compare_digest(str(stored), str(code_hash)):
+                matched_idx = idx
+                break
+        if matched_idx < 0:
+            raise AuthenticationError("Invalid or already-used recovery code.")
+
+        auth_user_id = str(profile.get("auth_user_id") or "")
+        if not auth_user_id:
+            raise AuthenticationError("Account authentication linkage is missing.")
+
+        try:
+            self.client.auth.admin.update_user_by_id(auth_user_id, {"password": new_password})
+        except Exception as exc:
+            raise DatabaseUnavailableError(f"Failed to update password in Supabase Auth: {exc}") from exc
+
+        remaining = [h for idx, h in enumerate(hashes) if idx != matched_idx]
+        self.set_recovery_hashes(profile_id, remaining)
+        return profile, len(remaining)
+
+    def send_password_reset_email(self, email: str) -> None:
+        self.anon_client.auth.reset_password_for_email(email.strip().lower())
 
     def get_profile_by_id(self, profile_id: str) -> Optional[Dict[str, Any]]:
         try:

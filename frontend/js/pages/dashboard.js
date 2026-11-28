@@ -302,4 +302,53 @@ document.addEventListener("DOMContentLoaded", async () => {
       LifeLinkUI.showAlert("profile-update-alert", err.message, "error");
     }
   });
+
+  async function loadRecoveryStatus() {
+    const statusEl = document.getElementById("dash-recovery-status");
+    if (!statusEl) return;
+    try {
+      const res = await LifeLinkAPI.request("/api/auth/recovery-codes");
+      statusEl.textContent = res.message;
+    } catch {
+      statusEl.textContent = "Unable to load recovery code status right now.";
+    }
+  }
+  loadRecoveryStatus();
+
+  let latestDashCodes = [];
+  document.getElementById("dash-regen-codes-btn")?.addEventListener("click", async () => {
+    LifeLinkUI.clearAlert("dash-recovery-alert");
+    const btn = document.getElementById("dash-regen-codes-btn");
+    if (btn) btn.disabled = true;
+    try {
+      const res = await LifeLinkAPI.request("/api/auth/recovery-codes/regenerate", { method: "POST" });
+      latestDashCodes = res.recovery_codes || [];
+      document.getElementById("dash-recovery-status").textContent = res.message;
+      const box = document.getElementById("dash-recovery-codes-box");
+      if (box && latestDashCodes.length) {
+        box.classList.remove("hidden");
+        box.innerHTML = latestDashCodes
+          .map(
+            (c) => `<div style="border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; text-align: center; font-weight: 700;">${LifeLinkUI.escapeHtml(c)}</div>`
+          )
+          .join("");
+        document.getElementById("dash-copy-codes-btn")?.classList.remove("hidden");
+      }
+      LifeLinkUI.showAlert("dash-recovery-alert", "New backup recovery codes generated. Save them safely!", "success");
+    } catch (err) {
+      LifeLinkUI.showAlert("dash-recovery-alert", err.message, "error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  document.getElementById("dash-copy-codes-btn")?.addEventListener("click", async () => {
+    if (!latestDashCodes.length) return;
+    try {
+      await navigator.clipboard.writeText(latestDashCodes.join("\n"));
+      LifeLinkUI.showAlert("dash-recovery-alert", "Backup codes copied to clipboard.", "info");
+    } catch {
+      /* ignore */
+    }
+  });
 });

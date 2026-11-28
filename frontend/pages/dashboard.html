@@ -151,6 +151,20 @@
             does not operate competitive leaderboards.</p>
           <div id="dash-referral-box">Loading referral summary...</div>
         </div>
+
+        <div class="card" style="margin-top: 24px; border-left: 4px solid var(--primary-red);">
+          <h2 style="margin-top: 0;">Account Backup &amp; Recovery Codes (Like Instagram)</h2>
+          <p class="form-hint" style="margin-top: 0;">
+            One-time secret codes let you reset your password and sign back in safely even without email OTP.
+          </p>
+          <div id="dash-recovery-alert" class="alert hidden"></div>
+          <p id="dash-recovery-status" style="margin: 8px 0 12px;">Checking backup recovery codes...</p>
+          <div id="dash-recovery-codes-box" class="hidden" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; font-family: monospace;"></div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button type="button" id="dash-regen-codes-btn" class="btn btn-secondary btn-sm">Generate New Recovery Codes</button>
+            <button type="button" id="dash-copy-codes-btn" class="btn btn-outline btn-sm hidden">Copy Codes</button>
+          </div>
+        </div>
       </div>
     </div>
   </main>

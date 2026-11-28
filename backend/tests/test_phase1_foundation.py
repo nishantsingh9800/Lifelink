@@ -331,3 +331,95 @@ def test_unconfigured_supabase_with_dev_mode_disabled_returns_503():
         res = tc.get("/api/health")
         assert res.status_code == 503
     reset_repository_cache()
+
+
+def test_forgot_password_instagram_style_recovery_codes(test_client_and_settings):
+    test_client, _ = test_client_and_settings
+    reg = test_client.post(
+        "/api/auth/register",
+        json={
+            "full_name": "Recovery User",
+            "email": "recoverme@example.com",
+            "phone_number": "+919811223344",
+            "password": "OldPassword123!",
+            "city": "Mathura",
+            "approximate_location": "Dampier Nagar",
+            "role_preference": "requester",
+            "terms_accepted": True,
+        },
+    )
+    assert reg.status_code == 201
+    codes = reg.json().get("recovery_codes") or []
+    assert len(codes) == 6
+    assert "-" in codes[0]
+    tok = reg.json()["access_token"]
+    hdrs = {"Authorization": f"Bearer {tok}"}
+
+    # Preferences update must preserve recovery codes
+    pref_res = test_client.patch(
+        "/api/users/me/preferences",
+        headers=hdrs,
+        json={"preferred_language": "hi", "text_size": "large"},
+    )
+    assert pref_res.status_code == 200
+    status_res = test_client.get("/api/auth/recovery-codes", headers=hdrs)
+    assert status_res.status_code == 200
+    assert status_res.json()["remaining_count"] == 6
+
+    # Recover using first backup code (even ignoring hyphen/case) and log in immediately
+    first_code_clean = codes[0].replace("-", "").lower()
+    rec = test_client.post(
+        "/api/auth/recover-with-code",
+        json={
+            "identifier": "recoverme@example.com",
+            "recovery_code": first_code_clean,
+            "new_password": "NewStrongPassword!99",
+        },
+    )
+    assert rec.status_code == 200
+    assert rec.json()["access_token"]
+    assert "5 backup code(s) remaining" in rec.json()["message"]
+
+    # Reusing the same single-use code must fail (401)
+    reuse = test_client.post(
+        "/api/auth/recover-with-code",
+        json={
+            "identifier": "+919811223344",
+            "recovery_code": codes[0],
+            "new_password": "AnotherPassword!99",
+        },
+    )
+    assert reuse.status_code == 401
+
+    # Old password no longer works; new password works
+    assert (
+        test_client.post(
+            "/api/auth/login",
+            json={"identifier": "recoverme@example.com", "password": "OldPassword123!"},
+        ).status_code
+        == 401
+    )
+    assert (
+        test_client.post(
+            "/api/auth/login",
+            json={"identifier": "+919811223344", "password": "NewStrongPassword!99"},
+        ).status_code
+        == 200
+    )
+
+    # Regenerate fresh 6 codes invalidates old unused codes (e.g., codes[1])
+    regen = test_client.post("/api/auth/recovery-codes/regenerate", headers=hdrs)
+    assert regen.status_code == 200
+    new_codes = regen.json()["recovery_codes"]
+    assert len(new_codes) == 6
+    assert (
+        test_client.post(
+            "/api/auth/recover-with-code",
+            json={
+                "identifier": "recoverme@example.com",
+                "recovery_code": codes[1],
+                "new_password": "ShouldFailPassword!1",
+            },
+        ).status_code
+        == 401
+    )

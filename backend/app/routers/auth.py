@@ -14,16 +14,21 @@ from backend.app.dependencies.auth import get_current_user
 from backend.app.schemas.auth import (
     AadhaarVerifyInitRequest,
     AuthResponse,
+    ForgotPasswordEmailRequest,
     LoginRequest,
     PhoneOtpSendRequest,
     PhoneOtpVerifyRequest,
     ProfileResponse,
+    RecoverWithCodeRequest,
+    RecoveryCodesStatusResponse,
     RegisterRequest,
 )
 from backend.app.utils.security import (
     compute_aadhaar_hash,
     create_aadhaar_dev_token,
     create_dev_access_token,
+    generate_recovery_codes,
+    hash_recovery_code,
     mask_aadhaar_last4,
     normalize_phone,
     verify_aadhaar_dev_token,
@@ -155,29 +160,37 @@ def register(payload: RegisterRequest, settings: Settings = Depends(get_settings
             new_aadhaar_hash=f"no-aadhaar-{profile['id']}",
         )
 
+    recovery_codes = generate_recovery_codes(6)
+    repo.set_recovery_hashes(
+        str(profile["id"]),
+        [hash_recovery_code(c, settings) for c in recovery_codes],
+    )
+
     if isinstance(repo, LocalDevSQLiteRepository):
         token = create_dev_access_token(profile, settings)
         return AuthResponse(
             access_token=token,
             auth_mode="dev_only",
             user=_to_profile_response(profile),
-            message="Registered in Local Development Mode. Complete phone verification to mark account verified.",
+            message="Registered in Local Development Mode. Save your 6 backup recovery codes safely.",
+            recovery_codes=recovery_codes,
         )
 
     # Supabase mode: attempt immediate sign-in if email confirmation is disabled
     try:
         auth_result = repo.authenticate_supabase(payload.email, payload.password)
         token = auth_result["access_token"]
-        msg = "Account registered successfully."
+        msg = "Account registered successfully. Save your 6 backup recovery codes safely."
     except AuthenticationError:
         token = ""
-        msg = "Account created. Please verify your email/phone via Supabase before logging in."
+        msg = "Account created. Save your 6 backup recovery codes, and verify email/phone if prompted."
 
     return AuthResponse(
         access_token=token,
         auth_mode="supabase",
         user=_to_profile_response(profile),
         message=msg,
+        recovery_codes=recovery_codes,
     )
 
 
@@ -205,6 +218,104 @@ def login(payload: LoginRequest, settings: Settings = Depends(get_settings)) -> 
         )
     except AuthenticationError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
+
+
+@router.post("/recover-with-code", response_model=AuthResponse)
+def recover_password_with_code(
+    payload: RecoverWithCodeRequest,
+    settings: Settings = Depends(get_settings),
+) -> AuthResponse:
+    """Reset password and log in using a single-use Instagram-style backup recovery code."""
+    repo = get_repository(settings)
+    code_hash = hash_recovery_code(payload.recovery_code, settings)
+    try:
+        profile, remaining = repo.recover_password_with_code(
+            identifier=payload.identifier,
+            code_hash=code_hash,
+            new_password=payload.new_password,
+        )
+    except AuthenticationError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
+
+    if isinstance(repo, LocalDevSQLiteRepository):
+        token = create_dev_access_token(profile, settings)
+        return AuthResponse(
+            access_token=token,
+            auth_mode="dev_only",
+            user=_to_profile_response(profile),
+            message=f"Password updated using recovery code ({remaining} backup code(s) remaining).",
+        )
+
+    email = profile.get("email") or payload.identifier
+    auth_result = repo.authenticate_supabase(str(email), payload.new_password)
+    return AuthResponse(
+        access_token=auth_result["access_token"],
+        auth_mode="supabase",
+        user=_to_profile_response(auth_result["profile"]),
+        message=f"Password updated using recovery code ({remaining} backup code(s) remaining).",
+    )
+
+
+@router.post("/forgot-password-email")
+def request_password_reset_email(
+    payload: ForgotPasswordEmailRequest,
+    settings: Settings = Depends(get_settings),
+) -> Dict[str, str]:
+    """Trigger Supabase password reset email if configured; guide users to backup codes otherwise."""
+    repo = get_repository(settings)
+    if not isinstance(repo, SupabaseRepository):
+        return {
+            "status": "use_recovery_code",
+            "message": "Email reset requires live cloud SMTP; use one of your 6 backup recovery codes right below.",
+        }
+    try:
+        repo.send_password_reset_email(payload.email)
+        return {
+            "status": "sent",
+            "message": "If an account exists for that email, a reset link has been requested (if email delivery is rate-limited, use a backup recovery code).",
+        }
+    except Exception:
+        return {
+            "status": "use_recovery_code",
+            "message": "Email reset delivery is unavailable or rate-limited right now. Use one of your 6 backup recovery codes instead.",
+        }
+
+
+@router.get("/recovery-codes", response_model=RecoveryCodesStatusResponse)
+def get_recovery_codes_status(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    settings: Settings = Depends(get_settings),
+) -> RecoveryCodesStatusResponse:
+    """Return remaining count of unused one-time backup recovery codes (never returns plaintext codes)."""
+    repo = get_repository(settings)
+    hashes = repo.get_recovery_hashes(str(current_user["id"]))
+    return RecoveryCodesStatusResponse(
+        remaining_count=len(hashes),
+        message=(
+            f"You have {len(hashes)} unused one-time backup recovery code(s)."
+            if hashes
+            else "No backup recovery codes generated yet. Click 'Generate New Recovery Codes' to create 6 codes."
+        ),
+    )
+
+
+@router.post("/recovery-codes/regenerate", response_model=RecoveryCodesStatusResponse)
+def regenerate_recovery_codes(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+    settings: Settings = Depends(get_settings),
+) -> RecoveryCodesStatusResponse:
+    """Invalidate previous recovery codes and issue 6 fresh single-use Instagram-style backup codes."""
+    repo = get_repository(settings)
+    codes = generate_recovery_codes(6)
+    repo.set_recovery_hashes(
+        str(current_user["id"]),
+        [hash_recovery_code(c, settings) for c in codes],
+    )
+    return RecoveryCodesStatusResponse(
+        remaining_count=len(codes),
+        recovery_codes=codes,
+        message="6 new single-use recovery codes generated. Save them safely—any older codes are now invalid.",
+    )
 
 
 @router.get("/me", response_model=ProfileResponse)
