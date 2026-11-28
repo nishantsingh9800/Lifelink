@@ -139,6 +139,8 @@ def register(payload: RegisterRequest, settings: Settings = Depends(get_settings
         )
     except ConflictError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     if payload.referral_code and aadhaar_hash:
         repo.apply_referral_on_registration(
@@ -325,6 +327,8 @@ def verify_aadhaar_for_user(
         )
     except ConflictError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     assert updated is not None
     return _to_profile_response(updated)
 

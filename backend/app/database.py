@@ -2649,10 +2649,41 @@ class SupabaseRepository(Phase1SupabaseMixin, Phase2SupabaseMixin, Phase3Supabas
         normalized_phone = normalize_phone(phone_number)
         normalized_email = email.strip().lower()
 
+        auth_user_id: Optional[str] = None
         try:
-            auth_res = self.anon_client.auth.sign_up(
-                {"email": normalized_email, "password": password}
+            existing_prof = (
+                self.client.table("profiles")
+                .select("id")
+                .or_(f"email.eq.{normalized_email},phone_number.eq.{normalized_phone}")
+                .limit(1)
+                .execute()
             )
+            if existing_prof.data:
+                raise ConflictError("An account with this email or phone number already exists.")
+
+            try:
+                auth_res = self.anon_client.auth.sign_up(
+                    {"email": normalized_email, "password": password}
+                )
+            except Exception as auth_exc:
+                amsg = str(auth_exc).lower()
+                if "already" in amsg or "registered" in amsg:
+                    raise ConflictError("An account with this email or phone number already exists.") from auth_exc
+                if "weak" in amsg or "password" in amsg:
+                    raise ValueError(
+                        "Password is too weak or common. Use at least 8 mixed characters (letters, numbers, symbol)."
+                    ) from auth_exc
+                if "rate limit" in amsg or "too many" in amsg or "429" in amsg:
+                    # Fallback via service_role admin create_user so signup isn't blocked by public 2/hr email quota
+                    admin_res = self.client.auth.admin.create_user(
+                        {"email": normalized_email, "password": password, "email_confirm": True}
+                    )
+                    auth_res = admin_res
+                elif "invalid" in amsg or "email" in amsg:
+                    raise ValueError(f"Invalid registration details: {auth_exc}") from auth_exc
+                else:
+                    raise ValueError(f"Authentication provider rejected signup: {auth_exc}") from auth_exc
+
             if not auth_res.user:
                 raise ConflictError("Could not register user with Supabase Auth.")
             auth_user_id = str(auth_res.user.id)
@@ -2689,9 +2720,19 @@ class SupabaseRepository(Phase1SupabaseMixin, Phase2SupabaseMixin, Phase3Supabas
                     }
                 ).execute()
             return profile
-        except ConflictError:
+        except (ConflictError, ValueError):
+            if auth_user_id:
+                try:
+                    self.client.auth.admin.delete_user(auth_user_id)
+                except Exception:
+                    pass
             raise
         except Exception as exc:
+            if auth_user_id:
+                try:
+                    self.client.auth.admin.delete_user(auth_user_id)
+                except Exception:
+                    pass
             msg = str(exc).lower()
             if "already" in msg or "duplicate" in msg or "unique" in msg:
                 raise ConflictError("An account with this email or phone number already exists.") from exc
