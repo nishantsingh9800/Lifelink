@@ -2752,10 +2752,15 @@ class SupabaseRepository(Phase1SupabaseMixin, Phase2SupabaseMixin, Phase3Supabas
                     ) from auth_exc
                 if "rate limit" in amsg or "too many" in amsg or "429" in amsg:
                     # Fallback via service_role admin create_user so signup isn't blocked by public 2/hr email quota
-                    admin_res = self.client.auth.admin.create_user(
-                        {"email": normalized_email, "password": password, "email_confirm": True}
-                    )
-                    auth_res = admin_res
+                    try:
+                        auth_res = self.client.auth.admin.create_user(
+                            {"email": normalized_email, "password": password, "email_confirm": True}
+                        )
+                    except Exception as admin_exc:
+                        adm_msg = str(admin_exc).lower()
+                        if "already" in adm_msg or "registered" in adm_msg:
+                            raise ConflictError("An account with this email or phone number already exists.") from admin_exc
+                        raise ValueError(f"Registration failed: {admin_exc}") from admin_exc
                 elif "invalid" in amsg or "email" in amsg:
                     raise ValueError(f"Invalid registration details: {auth_exc}") from auth_exc
                 else:

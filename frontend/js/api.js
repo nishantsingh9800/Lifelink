@@ -60,6 +60,9 @@ const LifeLinkAPI = (() => {
       } else if (Array.isArray(data.detail) && data.detail.length > 0) {
         message = data.detail.map((item) => item.msg || String(item)).join("; ");
       }
+      if (response.status === 503 && typeof data.error === "string" && data.error) {
+        message = `${message} (${data.error})`;
+      }
       const err = new Error(message);
       err.status = response.status;
       err.data = data;
